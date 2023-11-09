@@ -1,5 +1,6 @@
 import usersService from "../services/users.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export const signUp = async (req, res, next) => {
     const { name, email, password } = req.body;
@@ -24,3 +25,23 @@ export const signUp = async (req, res, next) => {
 
     res.status(200).json({message: "Register successfully"});
 };
+
+export const signIn = async (req, res, next) => {
+    const { email, password } = req.body;
+    const userExists = await usersService.findUserByEmail(email);
+
+    if (!userExists) return res.status(400).json({message: `Invalid email or password`})
+
+    const match = await bcrypt.compare(password, userExists.password);
+    if (!match) return res.status(400).json({message: `Invalid email or password`})
+
+    userExists.password = null;
+    const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
+    return res
+      .cookie("access_token", accessToken, {
+        httpOnly: true
+      })
+      .status(200)
+      .json({ token: accessToken });
+};
+
