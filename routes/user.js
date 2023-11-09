@@ -6,4 +6,6 @@ const userRoute = express.Router();
 
 userRoute.get('/user/:id', nextWrapper(userController.getUserProfile));
 
+userRoute.put('/user/:id', nextWrapper(userController.updateUserProfile));
+
 export default userRoute;
