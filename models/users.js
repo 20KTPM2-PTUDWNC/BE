@@ -43,6 +43,9 @@ const usersSchema = new mongoose.Schema({
     deleteAt: {
         type: Date,
         default: null
+    },
+    avatar:{
+        type: String
     }
 },
     { timestamps: true });

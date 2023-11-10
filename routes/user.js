@@ -8,4 +8,6 @@ userRoute.get('/user/:id', nextWrapper(userController.getUserProfile));
 
 userRoute.put('/user/:id', nextWrapper(userController.updateUserProfile));
 
+userRoute.post('/user/uploadPhoto/:id', nextWrapper(userController.uploadPhoto));
+
 export default userRoute;
