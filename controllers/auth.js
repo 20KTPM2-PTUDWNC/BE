@@ -36,6 +36,7 @@ export const signIn = async (req, res, next) => {
     if (!match) return res.status(400).json({message: `Invalid email or password`})
 
     userExists.password = null;
+
     const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
     return res
       .cookie("access_token", accessToken, {
@@ -45,3 +46,11 @@ export const signIn = async (req, res, next) => {
       .json({ token: accessToken });
 };
 
+export const signOut = async (req, res, next) => {
+
+  req.cookies.access_token? res.clearCookie("access_token") : null;
+
+  req.userId? delete req.userId : null;
+
+  res.end();
+};

@@ -8,4 +8,6 @@ authRoute.post('/signUp', nextWrapper(authController.signUp));
 
 authRoute.post('/signIn', nextWrapper(authController.signIn));
 
+authRoute.get('/signOut', nextWrapper(authController.signOut));
+
 export default authRoute;
