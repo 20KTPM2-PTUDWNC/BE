@@ -5,6 +5,8 @@ import express from 'express'
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import route from './routes/index.js';
+import notFound from './middlewares/notFoundHandler.js';
+
 const app = express()
 
 // Setup
@@ -17,7 +19,9 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.use('/v1', route)
+app.use('/v1', route);
+
+app.use(notFound);
 
 // Connect to database
 connectDB()
