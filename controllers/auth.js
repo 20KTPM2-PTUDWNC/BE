@@ -39,7 +39,7 @@ export const signIn = async (req, res, next) => {
 
     const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
     return res
-      .cookie("access_token", accessToken, {
+      .cookie("token", accessToken, {
         httpOnly: true
       })
       .status(200)
