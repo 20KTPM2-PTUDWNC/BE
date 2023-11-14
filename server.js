@@ -15,6 +15,8 @@ const PORT = process.env.SERVER_PORT || 8080;
 // middlewares
 app.use(cors({
     origin: 'https://classroom-awp.netlify.app',
+    methods: 'POST, GET, PUT, DELETE',
+    allowedHeaders: 'Content-Type',
     credentials: true,
   }));
 app.use(express.urlencoded({ extended: true }));
