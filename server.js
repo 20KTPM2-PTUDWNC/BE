@@ -14,7 +14,7 @@ const PORT = process.env.SERVER_PORT || 8080;
 
 // middlewares
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://classroom-awp.netlify.app',
     credentials: true,
   }));
 app.use(express.urlencoded({ extended: true }));
