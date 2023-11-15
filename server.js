@@ -24,14 +24,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.get('/', (req, res) =>{
-    res.cookie('token', token, {
-        sameSite: 'None',
-        secure: true,
-    });
-    res.send('Cookie set successfully');
-});
-
 app.use('/v1', route);
 
 app.use(notFound);

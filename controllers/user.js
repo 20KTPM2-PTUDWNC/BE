@@ -6,9 +6,15 @@ import multer from "multer";
 const getUserProfile = async (req, res, next) => { 
   const userId = req.params.id;
   const user = await usersService.findUserById(userId);
+  const accessToken = jwt.sign(JSON.stringify(user), process.env.SECRET_KEY);
 
     if (user) {
-      return res.status(200).json(user);
+        return res
+        .cookie("token", accessToken, {
+          httpOnly: true
+        })
+        .status(200)
+        .json(user);
     }
     else{
         return res.status(400).json({message: `No user with id: ${userId} `});
