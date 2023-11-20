@@ -1,11 +1,11 @@
 import * as express from 'express';
 import * as userController from '../controllers/user.js';
 import nextWrapper from '../middlewares/nextWrapper.js';
-import { authentication } from '../middlewares/authentication.js';
+import passport from 'passport';
 
 const userRoute = express.Router();
 
-userRoute.get('/user/:id', authentication, nextWrapper(userController.getUserProfile));
+userRoute.get('/user/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.getUserProfile));
 
 userRoute.put('/user/:id', authentication, nextWrapper(userController.updateUserProfile));
 
