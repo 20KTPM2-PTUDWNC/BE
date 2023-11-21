@@ -7,8 +7,8 @@ const userRoute = express.Router();
 
 userRoute.get('/user/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.getUserProfile));
 
-userRoute.put('/user/:id', nextWrapper(userController.updateUserProfile));
+userRoute.put('/user/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.updateUserProfile));
 
-userRoute.post('/user/uploadPhoto/:id', nextWrapper(userController.uploadPhoto));
+userRoute.post('/user/uploadPhoto/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.uploadPhoto));
 
 export default userRoute;

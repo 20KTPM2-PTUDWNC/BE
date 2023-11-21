@@ -48,7 +48,7 @@ export const signIn = async (req, res, next) => {
 
 export const signOut = async (req, res, next) => {
 
-  req.cookies.access_token? res.clearCookie("access_token") : null;
+  req.cookies.token? res.clearCookie("token") : null;
 
   req.userId? delete req.userId : null;
 
