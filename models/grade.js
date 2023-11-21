@@ -13,4 +13,4 @@ const gradeSchema = new mongoose.Schema({
 },
     { timestamps: true });
 
-export default mongoose.model('Grade', classesSchema, 'grade');
+export default mongoose.model('Grade', gradeSchema, 'grade');
