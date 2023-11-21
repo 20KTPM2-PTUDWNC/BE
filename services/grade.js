@@ -4,14 +4,14 @@ export default {
     save: async (newGrade) => {
       await GradeModel.create(newGrade);
     },
-    findClassByName: async (name) => {
+    findGradeByName: async (name) => {
       return await GradeModel.findOne({name});
     },
-    findClassById: async (id) => {
+    findGradeById: async (id) => {
       const grade = await GradeModel.findById(id);
       return grade;
     },
-    findAllClasses: async () => {
+    findAllGrades: async () => {
       return await GradeModel.find();
     }
   }

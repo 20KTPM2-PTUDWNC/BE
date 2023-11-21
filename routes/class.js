@@ -14,4 +14,7 @@ classRoute.put('/class/showClassDetail/:id', passport.authenticate('jwt', {sessi
 classRoute.put('/class/showMemberList/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showMemberList));
 
 classRoute.post('/class/addGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.addGradeComposition));
+
+classRoute.put('/class/showGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showGradeStructure));
+
 export default classRoute;

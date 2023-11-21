@@ -1,5 +1,6 @@
 import classesService from "../services/class.js";
 import usersService from "../services/users.js";
+import gradeService from "../services/grade.js";
 
 const createClass = async(req, res, next) => {
     const {name, subject, room} = req.body;
@@ -92,6 +93,19 @@ const addGradeComposition  = async (req, res, next) => {
     } else {
       res.status(400).json({ message: `No class with id: ${classId}` });
     }
-  }
+}
 
-export {createClass, getAllClass, showClassDetail, showMemberList, addGradeComposition};
+const showGradeStructure = async(req, res, next) =>{
+    const classId = req.params.id;
+    const _class = await classesService.findClassById(classId);
+
+    if (_class){
+
+        return res.status(200).json(_class.gradeStructures);
+    }
+    else {
+        res.status(400).json({ message: `No class with id: ${classId}` });
+      }
+}
+
+export {createClass, getAllClass, showClassDetail, showMemberList, addGradeComposition, showGradeStructure};
