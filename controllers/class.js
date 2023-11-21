@@ -65,4 +65,33 @@ const showMemberList = async(req, res, next) => {
     }
 }
 
-export {createClass, getAllClass, showClassDetail, showMemberList};
+const addGradeComposition  = async (req, res, next) => {
+    const classId = req.params.id;
+    const { name, gradeScale } = req.body;
+  
+    if (!name || !gradeScale) {
+      return res.status(400).json({ message: 'Invalid Grade Structure' });
+    }
+  
+    const _class = await classesService.findClassById(classId);
+  
+    if (_class) {
+      // Create the new grade structure object
+      const newGradeComposition = {
+        name: name,
+        gradeScale: gradeScale
+      };
+  
+      // Add the new grade structure to the class
+      _class.gradeStructures.push(newGradeComposition);
+      
+      // Save the updated class in the database
+      await _class.save();
+  
+      return res.status(200).json({ message: "Grade structure added successfully" });
+    } else {
+      res.status(400).json({ message: `No class with id: ${classId}` });
+    }
+  }
+
+export {createClass, getAllClass, showClassDetail, showMemberList, addGradeComposition};
