@@ -15,6 +15,7 @@ const classesSchema = new mongoose.Schema({
     },
     authorId: {
         type: mongoose.Types.ObjectId,
+        ref: "User"
     },
     subject:{
         type: String,
@@ -25,7 +26,11 @@ const classesSchema = new mongoose.Schema({
     studentList:{
         type: Array,
         default: []
-    }
+    },
+    gradeStructures:{
+        type: Array,
+        default: []
+    },
 },
     { timestamps: true });
 
