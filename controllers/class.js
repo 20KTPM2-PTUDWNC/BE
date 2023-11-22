@@ -1,6 +1,7 @@
 import classesService from "../services/class.js";
 import usersService from "../services/users.js";
 import gradeService from "../services/grade.js";
+import mongoose from "mongoose";
 
 const createClass = async(req, res, next) => {
     const {name, subject, room} = req.body;
@@ -77,14 +78,17 @@ const addGradeComposition  = async (req, res, next) => {
     const _class = await classesService.findClassById(classId);
   
     if (_class) {
-      // Create the new grade structure object
-      const newGradeComposition = {
-        name: name,
-        gradeScale: gradeScale
-      };
+        const gradeCompositionId = new mongoose.Types.ObjectId();
+        // Create the new grade structure object
+        const newGradeComposition = {
+            id: gradeCompositionId,
+            name: name,
+            gradeScale: gradeScale
+    };
   
       // Add the new grade structure to the class
       _class.gradeStructures.push(newGradeComposition);
+      await gradeService.save(newGradeComposition);
       
       // Save the updated class in the database
       await _class.save();
@@ -108,4 +112,66 @@ const showGradeStructure = async(req, res, next) =>{
       }
 }
 
-export {createClass, getAllClass, showClassDetail, showMemberList, addGradeComposition, showGradeStructure};
+const updateGradeComposition = async (req, res, next) => {
+    const classId = req.params.classId;
+    const gradeCompositionId = req.params.gradeCompositionId;
+    const {name, gradeScale } = req.body;
+
+    if (!name || !gradeScale) {
+        return res.status(400).json({ message: 'Invalid Grade Structure' });
+    }
+
+    const _class = await classesService.findClassById(classId);
+    console.log(_class);
+    if (_class) {
+        // Find the grade composition to update
+        const gradeComposition = await gradeService.findGradeById(gradeCompositionId);
+        console.log(gradeComposition);
+        if (gradeComposition) {
+            // Update the grade composition properties
+            gradeComposition.name = name;
+            gradeComposition.gradeScale = gradeScale;
+
+            // Save the updated class in the database
+            await _class.save();
+            
+
+            return res.status(200).json({ message: 'Grade structure updated successfully' });
+        } else {
+            return res.status(400).json({ message: `No grade composition with id: ${gradeCompositionId}` });
+        }
+    } else {
+        return res.status(400).json({ message: `No class with id: ${classId}` });
+    }
+}
+
+const deleteGradeComposition = async (req, res, next) => {
+    const classId = req.params.classId;
+    const gradeCompositionId = req.params.gradeCompositionId;
+  
+    const _class = await classesService.findClassById(classId);
+  
+    if (_class) {
+      // Find the index of the grade composition to remove
+      const gradeCompositionIndex = _class.gradeStructures.find(grade => String(grade._id) === gradeCompositionId);
+  
+      if (gradeCompositionIndex !== -1) {
+        // Remove the grade composition from the array
+        _class.gradeStructures.splice(gradeCompositionIndex, 1);
+        // Delete the grade composition from the database
+        await gradeService.deleteGrade(gradeCompositionIndex);
+  
+        // Save the updated class in the database
+        await _class.save();
+  
+        return res.status(200).json({ message: 'Grade structure removed successfully' });
+      } else {
+        return res.status(400).json({ message: `No grade composition with id: ${gradeCompositionId}` });
+      }
+    } else {
+      return res.status(400).json({ message: `No class with id: ${classId}` });
+    }
+}
+
+export {createClass, getAllClass, showClassDetail, showMemberList, 
+    addGradeComposition, showGradeStructure, updateGradeComposition,deleteGradeComposition};

@@ -1,3 +1,4 @@
+import grade from "../models/grade.js";
 import GradeModel from "../models/grade.js";
 
 export default {
@@ -13,5 +14,8 @@ export default {
     },
     findAllGrades: async () => {
       return await GradeModel.find();
+    },
+    deleteGrade: async (gradeDelete) => {
+      await GradeModel.deleteOne(gradeDelete);
     }
   }

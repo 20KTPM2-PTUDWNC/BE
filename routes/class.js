@@ -15,6 +15,9 @@ classRoute.put('/class/showMemberList/:id', passport.authenticate('jwt', {sessio
 
 classRoute.post('/class/addGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.addGradeComposition));
 
-classRoute.put('/class/showGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showGradeStructure));
+classRoute.get('/class/showGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showGradeStructure));
 
+classRoute.put('/class/:classId/updateGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(classController.updateGradeComposition));
+
+classRoute.delete('/class/:classId/deleteGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(classController.deleteGradeComposition));
 export default classRoute;

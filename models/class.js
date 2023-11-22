@@ -1,5 +1,6 @@
 import { ObjectId } from 'bson';
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import Grade from "../models/grade.js";
 
 const classesSchema = new mongoose.Schema({
     name: {
