@@ -17,8 +17,7 @@ const usersSchema = new mongoose.Schema({
         unique: true
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
     phone: {
         type: String
@@ -46,6 +45,13 @@ const usersSchema = new mongoose.Schema({
     },
     avatar:{
         type: String
+    },
+    typeLogin:{
+        type: String
+    },
+    verified: {
+        type: Boolean,
+        default: false
     }
 },
     { timestamps: true });
