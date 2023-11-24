@@ -88,7 +88,6 @@ const addGradeComposition  = async (req, res, next) => {
   
       // Add the new grade structure to the class
       _class.gradeStructures.push(newGradeComposition);
-      await gradeService.save(newGradeComposition);
       
       // Save the updated class in the database
       await _class.save();
@@ -116,21 +115,22 @@ const updateGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
     const gradeCompositionId = req.params.gradeCompositionId;
     const {name, gradeScale } = req.body;
-
+    console.log(name);
+    console.log(gradeScale);
     if (!name || !gradeScale) {
         return res.status(400).json({ message: 'Invalid Grade Structure' });
     }
 
     const _class = await classesService.findClassById(classId);
-    console.log(_class);
+    
     if (_class) {
         // Find the grade composition to update
-        const gradeComposition = await gradeService.findGradeById(gradeCompositionId);
-        console.log(gradeComposition);
-        if (gradeComposition) {
+        const gradeCompositionIndex = _class.gradeStructures.findIndex(grade => String(grade.id) === gradeCompositionId);
+
+        if (gradeCompositionIndex !== -1) {
             // Update the grade composition properties
-            gradeComposition.name = name;
-            gradeComposition.gradeScale = gradeScale;
+            _class.gradeStructures[gradeCompositionIndex].name = name;
+            _class.gradeStructures[gradeCompositionIndex].gradeScale = gradeScale;
 
             // Save the updated class in the database
             await _class.save();
@@ -148,24 +148,23 @@ const updateGradeComposition = async (req, res, next) => {
 const deleteGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
     const gradeCompositionId = req.params.gradeCompositionId;
-  
+    
     const _class = await classesService.findClassById(classId);
   
     if (_class) {
       // Find the index of the grade composition to remove
-      const gradeCompositionIndex = _class.gradeStructures.find(grade => String(grade._id) === gradeCompositionId);
-  
-      if (gradeCompositionIndex !== -1) {
+      const gradeCompositionIndex = _class.gradeStructures.find(grade => String(grade.id) === gradeCompositionId);
+      
+      if (gradeCompositionIndex) {
         // Remove the grade composition from the array
         _class.gradeStructures.splice(gradeCompositionIndex, 1);
-        // Delete the grade composition from the database
-        await gradeService.deleteGrade(gradeCompositionIndex);
   
         // Save the updated class in the database
         await _class.save();
   
         return res.status(200).json({ message: 'Grade structure removed successfully' });
-      } else {
+      } 
+      else {
         return res.status(400).json({ message: `No grade composition with id: ${gradeCompositionId}` });
       }
     } else {
