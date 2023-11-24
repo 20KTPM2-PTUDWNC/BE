@@ -8,7 +8,7 @@ import route from './routes/index.js';
 import notFound from './middlewares/notFoundHandler.js';
 import passport from 'passport';
 import passportJwt from 'passport-jwt';
-import usersService from "./services/users.js";
+import './config/passport.js';
 
 const app = express()
 
@@ -28,31 +28,6 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use(passport.initialize());
-
-const cookieExtractor = function (req) {
-    let token = null;
-    if (req && req.cookies) {
-        token = req.cookies['token'];
-    }
-    return token;
-};
-
-const JwtStrategy = passportJwt.Strategy;
-passport.use(new JwtStrategy({
-    secretOrKey: process.env.SECRET_KEY,
-    jwtFromRequest: cookieExtractor
-}, async (payload, done) => {
-    try {
-
-        if (!payload) {
-            return done(null, false);
-        }
-
-        return done(null, payload);
-    } catch (error) {
-        return done(error, false);
-    }
-}));
 
 app.use('/v1', route);
 
