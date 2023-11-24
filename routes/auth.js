@@ -42,4 +42,8 @@ authRoute.get('/signOut', nextWrapper(authController.signOut));
 
 authRoute.get('/activateAccount/:token', nextWrapper(authController.activateAccount));
 
+authRoute.post('/forgotPassword', nextWrapper(authController.forgotPassword));
+
+authRoute.post('/resetPassword', nextWrapper(authController.resetPassword));
+
 export default authRoute;
