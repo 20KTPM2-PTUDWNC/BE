@@ -9,12 +9,8 @@ classRoute.post('/class/createClass', passport.authenticate('jwt', {session: fal
 
 classRoute.get('/class/getAllClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClass));
 
-classRoute.put('/class/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
+classRoute.get('/class/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
 
-classRoute.put('/class/showMemberList/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showMemberList));
-
-classRoute.post('/class/addGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.addGradeComposition));
-
-classRoute.put('/class/showGradeStructure/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showGradeStructure));
+classRoute.get('/class/showMemberList/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showMemberList));
 
 export default classRoute;

@@ -13,5 +13,11 @@ export default {
     },
     findAllGrades: async () => {
       return await GradeModel.find();
+    },
+    deleteGrade: async (gradeDelete) => {
+      await GradeModel.deleteOne(gradeDelete);
+    },
+    updateGrade: async (gradeUpdate) => {
+      await GradeModel.updateOne(gradeUpdate);
     }
   }
