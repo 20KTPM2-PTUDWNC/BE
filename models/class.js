@@ -23,15 +23,7 @@ const classesSchema = new mongoose.Schema({
     },
     room:{
         type: String,
-    },
-    studentList:{
-        type: Array,
-        default: []
-    },
-    gradeStructures:{
-        type: Array,
-        default: []
-    },
+    }
 },
     { timestamps: true });
 

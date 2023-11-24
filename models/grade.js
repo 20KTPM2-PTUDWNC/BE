@@ -13,6 +13,11 @@ const gradeSchema = new mongoose.Schema({
     gradeScale: {
         type: Number,
         require: true
+    },
+    classId:{
+        type: mongoose.Types.ObjectId,
+        require: true,
+        ref: "Class"
     }
 },
     { timestamps: true });

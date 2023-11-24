@@ -1,4 +1,3 @@
-import grade from "../models/grade.js";
 import GradeModel from "../models/grade.js";
 
 export default {
