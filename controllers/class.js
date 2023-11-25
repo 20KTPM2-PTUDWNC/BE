@@ -1,5 +1,5 @@
 import classesService from "../services/class.js";
-import usersService from "../services/users.js";
+import userClassModel from "../models/userClass.js";
 import mongoose from "mongoose";
 
 const createClass = async(req, res, next) => {
@@ -12,8 +12,10 @@ const createClass = async(req, res, next) => {
     }
 
     const newClass = {...req.body, authorId: authorId, code: generateCode};
+    const createdClass = await classesService.save(newClass);
 
-    await classesService.save(newClass);
+    const teacher = {userId: authorId, classId: createdClass._id, userRole: 1};
+    await userClassModel.create(teacher);
 
     res.status(200).json({message: "Create new class successfully"});
 
@@ -42,28 +44,4 @@ const showClassDetail = async(req, res, next) => {
     }
 }
 
-const showMemberList = async(req, res, next) => {
-    const classId = req.params.id;
-    const _class = await classesService.findClassById(classId);
-
-    if (_class) {
-        // Fetch the teacher details from the users service
-        const teacher = await usersService.findUserById(_class.authorId);
-        
-        // Fetch the student details from the users service
-        const students = await Promise.all(_class.studentList.map(studentId =>
-            usersService.findUserById(studentId)
-        ));
-
-        const memberList = {
-            teacher: teacher,
-            students: students
-        };
-
-        return res.status(200).json(memberList);
-    } else {
-        res.status(400).json({ message: `No class with id: ${classId}` });
-    }
-}
-
-export {createClass, getAllClass, showClassDetail, showMemberList};
+export {createClass, getAllClass, showClassDetail};

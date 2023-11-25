@@ -18,6 +18,10 @@ const gradeSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         require: true,
         ref: "Class"
+    },
+    sort:{
+        type: Number,
+        require: true
     }
 },
     { timestamps: true });

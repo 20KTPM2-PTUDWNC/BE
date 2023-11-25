@@ -13,4 +13,6 @@ gradeRoute.put('/grade/:classId/updateGradeComposition/:gradeCompositionId', pas
 
 gradeRoute.delete('/grade/:classId/deleteGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.deleteGradeComposition));
 
+gradeRoute.patch('/grade/:classId/arrangeGradeComposition/:gradeCompositionId/position/:position', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.arrangeGradeComposition));
+
 export default gradeRoute;
