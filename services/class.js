@@ -2,7 +2,7 @@ import ClassModel from "../models/class.js";
 
 export default {
     save: async (newClass) => {
-      await ClassModel.create(newClass);
+      return await ClassModel.create(newClass);
     },
     findClassByName: async (name) => {
       return await ClassModel.findOne({name});
