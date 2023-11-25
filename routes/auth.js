@@ -12,7 +12,8 @@ authRoute.get('/auth/google/callback',
             next();
         })(req, res, next)
     }, (req, res) => {
-        res.redirect(`${process.env.FRONTEND_DOMAIN}/#/loginSuccess/${req.user?.id}`)
+        const accessToken = jwt.sign(JSON.stringify(req.user), process.env.SECRET_KEY);
+        res.redirect(`${process.env.FRONTEND_DOMAIN}/#/loginSuccess/${accessToken}`)
     }
 );
 
@@ -26,7 +27,8 @@ authRoute.get('/auth/facebook/callback',
             next();
         })(req, res, next)
     }, (req, res) => {
-        res.redirect(`${process.env.FRONTEND_DOMAIN}/#/loginSuccess/${req.user?.id}`)
+        const accessToken = jwt.sign(JSON.stringify(req.user), process.env.SECRET_KEY);
+        res.redirect(`${process.env.FRONTEND_DOMAIN}/#/loginSuccess/${accessToken}`)
     });
 
 authRoute.get('/auth/facebook',
@@ -41,5 +43,9 @@ authRoute.post('/signIn', nextWrapper(authController.signIn));
 authRoute.get('/signOut', nextWrapper(authController.signOut));
 
 authRoute.get('/activateAccount/:token', nextWrapper(authController.activateAccount));
+
+authRoute.post('/forgotPassword', nextWrapper(authController.forgotPassword));
+
+authRoute.post('/resetPassword', nextWrapper(authController.resetPassword));
 
 export default authRoute;

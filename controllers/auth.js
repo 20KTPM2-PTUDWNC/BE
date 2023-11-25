@@ -11,10 +11,10 @@ export const signUp = async (req, res, next) => {
     return res.status(400).json({ message: 'Invalid User' });
   }
 
-  // const userExists = await usersService.findUserByEmail(email);
-  // if (userExists) {
-  //   return res.status(400).json({ message: 'User Exists' });
-  // }
+  const userExists = await usersService.findUserByEmail(email);
+  if (userExists) {
+    return res.status(400).json({ message: 'User Exists' });
+  }
 
   const passwordEncrypt = await bcrypt.hash(password, 10);
 
@@ -85,4 +85,63 @@ export const activateAccount = async (req, res, next) => {
       runValidators: true
     });
   res.status(200).send('Email verified');
+};
+
+export const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const userExists = await usersService.findUserByEmail(email);
+  if (!userExists) {
+    return res.status(400).json({ message: 'User is not existed.' });
+  }
+
+  userExists.password = null;
+
+  const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
+
+  const link = `${process.env.FRONTEND_DOMAIN}/#/resetPassword/${accessToken}`
+
+  // setup email data
+  const mailOptions = {
+    from: process.env.MAILER_USER,
+    to: email,
+    subject: 'Reset Password',
+    text: `Click this link to reset your password:\n${link}`
+  };
+
+  // send mail
+  let info = await transporter.sendMail(mailOptions);
+  if (!info) {
+    res.status(400).json({ message: `Send email fail` })
+  }
+
+  res.status(200).json({ message: 'A link has been sent to your email' });
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Invalid field' });
+  }
+
+  const tokenEncrypt = jwt.verify(token, process.env.SECRET_KEY);
+  if (!tokenEncrypt) {
+    return res.status(400).json({ message: 'Invalid token' });
+  }
+
+  const passwordEncrypt = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  await User.findByIdAndUpdate({ _id: tokenEncrypt._id }, { password: passwordEncrypt },
+    {
+      new: true,
+      runValidators: true
+    });
+
+  res.status(200).send('Reset password successfully!')
 };
