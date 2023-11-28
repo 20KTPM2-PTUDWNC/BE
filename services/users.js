@@ -20,7 +20,7 @@ export default {
     let user = await UsersModel.findOne({email: email});
     if(!user) {
       user = await UsersModel.create({
-        name: `${data.name.familyName} ${data.name.givenName}`,
+        name: displayName,
         email: email,
         avatar: data.picture,
         typeLogin: data.provider,

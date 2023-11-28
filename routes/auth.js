@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as authController from '../controllers/auth.js';
 import nextWrapper from '../middlewares/nextWrapper.js';
 import passport from 'passport';
+import jwt from "jsonwebtoken";
 
 const authRoute = express.Router();
 

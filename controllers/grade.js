@@ -11,15 +11,17 @@ const addGradeComposition  = async (req, res, next) => {
     }
   
     const _class = await classesService.findClassById(classId);
-    const position = await GradeModel.count();
   
     if (_class) {
+        const listGrade = await GradeModel.find({classId: classId});
+        const countGrade = listGrade.length;
+        const position = countGrade + 1;
         // Create the new grade structure object
         const newGradeComposition = {
             name: name,
             gradeScale: gradeScale,
             classId: classId,
-            position: position + 1
+            sort: position
     };
     
     // Save the updated class in the database
@@ -84,24 +86,41 @@ const arrangeGradeComposition = async (req, res, next) => {
     const gradeCompositionId = req.params.gradeCompositionId;
     const newPosition = req.params.position;
 
-    const gradeComposition = await GradeModel.find({_id: gradeCompositionId, classId: classId});
-    const _class = await GradeModel.find({classId: classId});
+    const gradeComposition = await GradeModel.findOne({ _id: gradeCompositionId, classId: classId });
+    const _class = await GradeModel.find({ classId: classId });
 
     if (gradeComposition) {
-        gradeComposition.position = newPosition;
-        _class.sort((a, b) => a.position - b.position);
-        let updatedGradeCompositions = [];
+        const oldPosition = gradeComposition.sort;
+
+        // Update the target grade composition's position
+        await GradeModel.findByIdAndUpdate(
+            { _id: gradeCompositionId, classId: classId },
+            { sort: newPosition }
+        );
+
+        // Adjust positions of other grade compositions
         for (let i = 0; i < _class.length; i++) {
-            const gc = _class[i];
-            gc.position = i + 1;
-            updatedGradeCompositions.push(await gc.save());
-    }
+            if (_class[i]._id.toString() !== gradeCompositionId) {
+                if (_class[i].sort > oldPosition && _class[i].sort <= newPosition) {
+                    await GradeModel.findByIdAndUpdate(
+                        { _id: _class[i]._id, classId: classId },
+                        { sort: _class[i].sort - 1 }
+                    );
+                } else if (_class[i].sort < oldPosition && _class[i].sort >= newPosition) {
+                    await GradeModel.findByIdAndUpdate(
+                        { _id: _class[i]._id, classId: classId },
+                        { sort: _class[i].sort + 1 }
+                    );
+                }
+            }
+        }
+
         return res.status(200).json({ message: 'Grade structure updated successfully' });
-    } 
-    else {
+    } else {
         return res.status(400).json({ message: `No grade composition with id: ${gradeCompositionId}` });
     }
-
 }
+
+
 
 export {addGradeComposition, showGradeStructure, updateGradeComposition, deleteGradeComposition, arrangeGradeComposition};

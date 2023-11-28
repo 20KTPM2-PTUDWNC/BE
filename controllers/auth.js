@@ -54,18 +54,27 @@ export const signIn = async (req, res, next) => {
 
   if (!userExists) return res.status(400).json({ message: `Invalid email or password` })
 
-  const match = await bcrypt.compare(password, userExists.password);
-  if (!match) return res.status(400).json({ message: `Invalid email or password` })
+  if (userExists.verified) {
+    if (userExists.password) {
+      const match = await bcrypt.compare(password, userExists.password);
+      if (!match) return res.status(400).json({ message: `Invalid email or password` })
 
-  userExists.password = null;
+      userExists.password = null;
 
-  const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
-  return res
-    .cookie("token", accessToken, {
-      httpOnly: true
-    })
-    .status(200)
-    .json({ token: accessToken });
+      const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
+      return res
+        .cookie("token", accessToken, {
+          httpOnly: true
+        })
+        .status(200)
+        .json({ token: accessToken });
+    } else {
+      return res.status(400).json({ message: 'You need login with Google or Facebook' });
+    }
+
+  } else {
+    return res.status(400).json({ message: 'You need to verified by email' });
+  }
 };
 
 export const signOut = async (req, res, next) => {
