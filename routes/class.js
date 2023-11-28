@@ -9,8 +9,8 @@ classRoute.post('/class/createClass', passport.authenticate('jwt', {session: fal
 
 classRoute.get('/class/getAllClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClass));
 
-classRoute.get('/class/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
+classRoute.get('/class/getAllClassById', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClassById));
 
-classRoute.get('/class/showMemberList/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showMemberList));
+classRoute.get('/class/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
 
 export default classRoute;

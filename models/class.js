@@ -21,9 +21,6 @@ const classesSchema = new mongoose.Schema({
     subject:{
         type: String,
     },
-    room:{
-        type: String,
-    }
 },
     { timestamps: true });
 
