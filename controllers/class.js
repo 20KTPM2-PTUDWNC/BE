@@ -7,7 +7,7 @@ const createClass = async(req, res, next) => {
     const authorId = req.user._id;
     const generateCode = Math.random().toString(20).substr(2, 6);
 
-    if (!name || !subject || !room) {
+    if (!name || !subject) {
         return res.status(400).json({message: 'Invalid Class'});
     }
 
@@ -32,6 +32,25 @@ const getAllClass = async(req, res, next) => {
     }
 }
 
+const getAllClassById = async(req, res, next) => {
+    const classes = await classesService.findAllClasses();
+    const userId = req.user._id;
+
+    const listClass = await userClassModel.find({userId: userId});
+    let listClassInfor = [];
+
+    if (userId){
+        for(let i = 0; i < listClass.length; i++){
+            const _class = await classesService.findClassById({_id: listClass[i].classId});
+            listClassInfor = [...listClassInfor, _class];
+        }    
+        return res.status(200).json(classes);
+    }
+    else{
+        res.status(400).json({message: "No user"});
+    }
+}
+
 const showClassDetail = async(req, res, next) => {
     const classId = req.params.id;
     const _class = await classesService.findClassById(classId);
@@ -44,4 +63,4 @@ const showClassDetail = async(req, res, next) => {
     }
 }
 
-export {createClass, getAllClass, showClassDetail};
+export {createClass, getAllClass, showClassDetail, getAllClassById};
