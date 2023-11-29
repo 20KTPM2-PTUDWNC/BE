@@ -33,7 +33,6 @@ const getAllClass = async(req, res, next) => {
 }
 
 const getAllClassById = async(req, res, next) => {
-    const classes = await classesService.findAllClasses();
     const userId = req.user._id;
 
     const listClass = await userClassModel.find({userId: userId});
@@ -44,7 +43,7 @@ const getAllClassById = async(req, res, next) => {
             const _class = await classesService.findClassById({_id: listClass[i].classId});
             listClassInfor = [...listClassInfor, _class];
         }    
-        return res.status(200).json(classes);
+        return res.status(200).json(listClassInfor);
     }
     else{
         res.status(400).json({message: "No user"});
