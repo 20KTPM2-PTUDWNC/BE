@@ -1,25 +1,21 @@
 import { ObjectId } from 'bson';
 import mongoose from 'mongoose';
 
-const gradeSchema = new mongoose.Schema({
+const assignmentSchema = new mongoose.Schema({
     name: {
         type: String,
         require: true
     },
-    gradeScale: {
+    scale: {
         type: Number,
         require: true
     },
-    classId:{
+    gradeStructureId:{
         type: mongoose.Types.ObjectId,
         require: true,
-        ref: "Class"
-    },
-    sort:{
-        type: Number,
-        require: true
+        ref: "Grade"
     }
 },
     { timestamps: true });
 
-export default mongoose.model('Grade', gradeSchema, 'grade');
+export default mongoose.model('Assignment', assignmentSchema, 'assignment');
