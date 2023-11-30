@@ -5,7 +5,7 @@ export default {
     return await UsersModel.create(userEncrypt);
   },
   findUserByEmail: async (email) => {
-    return await UsersModel.findOne({email});
+    return await UsersModel.findOne({email, deleteAt: null});
   },
   findUserById: async (id) => {
     const user = await UsersModel.findById(id);

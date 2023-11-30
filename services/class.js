@@ -13,5 +13,8 @@ export default {
     },
     findAllClasses: async () => {
       return await ClassModel.find();
-    }
+    },
+    findClassByCode: async (code) => {
+      return await ClassModel.findOne({code});
+    },
   }

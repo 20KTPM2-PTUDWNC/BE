@@ -1,21 +1,6 @@
 import mongoose from 'mongoose';
 
-export const UserRole = {
-    Student: 0,
-    Teacher: 1
-}
-
-const userClassSchema = new mongoose.Schema({
-    userRole: {
-        type: Number,
-        default: UserRole.Student,
-        required: true
-    },
-    userId: {
-        type: mongoose.Types.ObjectId,
-        ref: "Users",
-        default: null,
-    },
+const studentClassSchema = new mongoose.Schema({
     classId:{
         type: mongoose.Types.ObjectId,
         ref: "Class",
@@ -24,6 +9,10 @@ const userClassSchema = new mongoose.Schema({
     studentId: {
         type: Number,
         default: null,
+    },
+    name: {
+        type: String,
+        required: true,
     },
     createdAt: {
         type: Date,
@@ -42,4 +31,4 @@ const userClassSchema = new mongoose.Schema({
 },
     { timestamps: true });
 
-export default mongoose.model('UserClass', userClassSchema, 'userclass');
+export default mongoose.model('StudentClass', studentClassSchema, 'studentclass');

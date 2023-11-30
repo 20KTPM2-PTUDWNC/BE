@@ -18,9 +18,26 @@ const classesSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "User"
     },
-    subject:{
+    subject: {
         type: String,
     },
+    room: {
+        type: String,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    deleteAt: {
+        type: Date,
+        default: null
+    }
 },
     { timestamps: true });
 

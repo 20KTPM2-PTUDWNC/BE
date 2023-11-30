@@ -5,12 +5,18 @@ import passport from 'passport';
 
 const classRoute = express.Router();
 
-classRoute.post('/class/createClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.createClass));
+classRoute.post('/createClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.createClass));
 
-classRoute.get('/class/getAllClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClass));
+classRoute.get('/getAllClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClass));
 
-classRoute.get('/class/getAllClassById', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClassById));
+classRoute.get('/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
 
-classRoute.get('/class/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
+classRoute.post('/createInvitationLink', passport.authenticate('jwt', {session: false}), nextWrapper(classController.createInvitationLink));
+
+classRoute.post('/invitationByEmail', passport.authenticate('jwt', {session: false}), nextWrapper(classController.invitationByEmail));
+
+classRoute.post('/acceptInvitation', passport.authenticate('jwt', {session: false}), nextWrapper(classController.acceptInvitation));
+
+classRoute.post('/joinClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.joinClass));
 
 export default classRoute;
