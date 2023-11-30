@@ -5,14 +5,22 @@ import passport from 'passport';
 
 const gradeRoute = express.Router();
 
-gradeRoute.post('/grade/addGradeStructure/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.addGradeComposition));
+gradeRoute.post('/addGradeStructure/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.addGradeComposition));
 
-gradeRoute.get('/grade/showGradeStructure/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.showGradeStructure));
+gradeRoute.get('/showGradeStructure/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.showGradeStructure));
 
-gradeRoute.put('/grade/:classId/updateGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.updateGradeComposition));
+gradeRoute.put('/:classId/updateGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.updateGradeComposition));
 
-gradeRoute.delete('/grade/:classId/deleteGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.deleteGradeComposition));
+gradeRoute.delete('/:classId/deleteGradeComposition/:gradeCompositionId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.deleteGradeComposition));
 
-gradeRoute.patch('/grade/:classId/arrangeGradeComposition/:gradeCompositionId/position/:position', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.arrangeGradeComposition));
+gradeRoute.patch('/:classId/arrangeGradeComposition/:gradeCompositionId/position/:position', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.arrangeGradeComposition));
+
+gradeRoute.get('/exportStudentList/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportStudentList));
+
+gradeRoute.get('/exportStudentGradeList/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportStudentGradeList));
+
+gradeRoute.get('/assignmentGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.gradeList));
+
+gradeRoute.post('/studentGrade', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.studentGrade));
 
 export default gradeRoute;

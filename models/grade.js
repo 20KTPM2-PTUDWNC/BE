@@ -1,4 +1,3 @@
-import { ObjectId } from 'bson';
 import mongoose from 'mongoose';
 
 const gradeSchema = new mongoose.Schema({
@@ -18,6 +17,20 @@ const gradeSchema = new mongoose.Schema({
     sort:{
         type: Number,
         require: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    deleteAt: {
+        type: Date,
+        default: null
     }
 },
     { timestamps: true });

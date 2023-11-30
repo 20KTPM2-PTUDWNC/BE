@@ -5,6 +5,6 @@ import passport from 'passport';
 
 const userClassRoute = express.Router();
 
-userClassRoute.get('/userClass/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(userClassController.showMemberList));
+userClassRoute.get('/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(userClassController.showMemberList));
 
 export default userClassRoute;

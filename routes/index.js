@@ -10,13 +10,13 @@ const router = express.Router();
 
 router.use('/', authRoute);
 
-router.use('/', userRoute);
+router.use('/user', userRoute);
 
-router.use('/', classRoute);
+router.use('/class', classRoute);
 
-router.use('/', gradeRoute);
+router.use('/grade', gradeRoute);
 
-router.use('/', userClassRoute);
+router.use('/userClass', userClassRoute);
 
 router.use('/', assignmentRoute);
 

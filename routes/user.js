@@ -5,10 +5,10 @@ import passport from 'passport';
 
 const userRoute = express.Router();
 
-userRoute.get('/user/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.getUserProfile));
+userRoute.get('/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.getUserProfile));
 
-userRoute.put('/user/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.updateUserProfile));
+userRoute.put('/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.updateUserProfile));
 
-userRoute.post('/user/uploadPhoto/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.uploadPhoto));
+userRoute.post('/uploadPhoto/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.uploadPhoto));
 
 export default userRoute;
