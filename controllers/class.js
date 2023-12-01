@@ -6,11 +6,11 @@ import jwt from "jsonwebtoken";
 import { transporter } from "../config/email.js"
 
 export const createClass = async (req, res, next) => {
-    const { name, subject, room } = req.body;
+    const { name, subject } = req.body;
     const authorId = req.user._id;
     const generateCode = Math.random().toString(20).substr(2, 6);
 
-    if (!name || !subject || !room) {
+    if (!name || !subject) {
         return res.status(400).json({ message: 'Invalid Class' });
     }
 
@@ -44,6 +44,24 @@ export const showClassDetail = async (req, res, next) => {
     }
     else {
         res.status(400).json({ message: `No class with id: ${classId} ` });
+    }
+}
+
+export const getAllClassById = async(req, res, next) => {
+    const userId = req.user._id;
+
+    const listClass = await userClassModel.find({userId: userId});
+    let listClassInfor = [];
+
+    if (userId){
+        for(let i = 0; i < listClass.length; i++){
+            const _class = await classesService.findClassById({_id: listClass[i].classId});
+            listClassInfor = [...listClassInfor, _class];
+        }    
+        return res.status(200).json(listClassInfor);
+    }
+    else{
+        res.status(400).json({message: "No user"});
     }
 }
 

@@ -19,4 +19,6 @@ classRoute.post('/acceptInvitation', passport.authenticate('jwt', {session: fals
 
 classRoute.post('/joinClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.joinClass));
 
+classRoute.get('/getAllClassById', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClassById));
+
 export default classRoute;
