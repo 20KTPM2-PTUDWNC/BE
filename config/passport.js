@@ -5,11 +5,11 @@ import passportFacebook from 'passport-facebook';
 import usersService from "../services/users.js";
 
 const cookieExtractor = function (req) {
-    let token = null;
-    if (req && req.cookies) {
-        token = req.cookies['token'];
-    }
-    return token;
+  let token = null;
+  if (req.headers['authorization'] && typeof req.headers['authorization'] === 'string') {
+    token = req.headers['authorization'].split(' ')[1];
+  }
+  return token;
 };
 
 const JwtStrategy = passportJwt.Strategy;
