@@ -5,9 +5,8 @@ import passportJwt from 'passport-jwt';
 
 const cookieExtractor = function (req) {
   const token = null;
-  //const token = req.headers['authorization']!.split(' ')[1];
-  if (req && req.cookies) {
-    token = req.cookies['token'];
+  if (req.headers['authorization'] && typeof req.headers['authorization'] === 'string') {
+    token = req.headers['authorization'].split(' ')[1];
   }
   return token;
 };

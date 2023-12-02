@@ -15,13 +15,32 @@ const app = express()
 // Setup
 const PORT = process.env.SERVER_PORT || 8080;
 
-// middlewares
-app.use(cors({
+// app.use(cors({
+//     origin: process.env.FRONTEND_DOMAIN,
+//     methods: 'POST, GET, PUT, DELETE',
+//     allowedHeaders: 'Content-Type',
+//     credentials: true,
+// }));
+
+const options = {
     origin: process.env.FRONTEND_DOMAIN,
-    methods: 'POST, GET, PUT, DELETE',
-    allowedHeaders: 'Content-Type',
+    allowedHeaders: [
+        'Origin',
+        'X-Requested-With',
+        'Content-Type',
+        'Accept',
+        'X-Access-Token',
+        'Authorization',
+    ],
     credentials: true,
-}));
+    methods: ['GET', 'HEAD', 'OPTIONS', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    exposedHeaders: ['X-Total-Count'],
+};
+
+app.use(cors(options));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(bodyParser.json());
