@@ -1,6 +1,6 @@
 import passport from 'passport';
 import passportJwt from 'passport-jwt';
-import passportGoogle from 'passport-google-oauth20';
+import passportGoogle from 'passport-google-oauth2';
 import passportFacebook from 'passport-facebook';
 import usersService from "../services/users.js";
 
