@@ -23,7 +23,7 @@ const PORT = process.env.SERVER_PORT || 8080;
 // }));
 
 const options = {
-    origin: process.env.FRONTEND_DOMAIN,
+    origin: 'https://classroom-awp.netlify.app',
     allowedHeaders: [
         'Origin',
         'X-Requested-With',
