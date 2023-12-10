@@ -4,6 +4,7 @@ import userClassService from "../services/userClass.js";
 import studentGradeService from "../services/studentGrade.js";
 import studentClassService from "../services/studentClass.js";
 import GradeModel from "../models/grade.js";
+import AssignmentModel from "../models/assignment.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -165,6 +166,12 @@ export const getStudentGrade = async (req, res, next) => {
     if (!assignmentId) {
         res.status(400).json({ message: 'Invalid fields' });
     }
-    const studentGrade = await studentGradeService.findStudentGrade(assignmentId, req.user);
-    return res.status(200).json(studentGrade);
+
+    const assignment = await AssignmentModel.findById(assignmentId);
+    
+    if (assignment) {
+        const studentGrade = await studentGradeService.findStudentGrade(assignmentId, req.user);
+        return res.status(200).json(studentGrade);
+    }
+    res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
 }

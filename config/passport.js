@@ -5,7 +5,6 @@ import passportFacebook from 'passport-facebook';
 import usersService from "../services/users.js";
 
 const cookieExtractor = function (req) {
-  console.log('authorization', req.headers['authorization']);
   return req.headers['authorization'];
 };
 
@@ -20,11 +19,8 @@ passport.use(new JwtStrategy({
       return done(null, false);
     }
 
-    console.log('payload', payload);
-
     return done(null, payload);
   } catch (error) {
-    console.log('error', error);
     return done(error, false);
   }
 }));
