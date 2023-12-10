@@ -47,4 +47,6 @@ export const reviewAssignment = async(req, res, next) =>{
   const { expectedGrade, userReview } = req.body;
 
   const assignmentReview = await assignmentReviewService.updateAssignmentReview({ expectedGrade, userReview, studentGradeId });
+
+  return res.status(200).json(assignmentReview);
 }
