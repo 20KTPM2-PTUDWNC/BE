@@ -7,20 +7,12 @@ import connectDB from './config/db.js';
 import route from './routes/index.js';
 import notFound from './middlewares/notFoundHandler.js';
 import passport from 'passport';
-import passportJwt from 'passport-jwt';
 import './config/passport.js';
 
 const app = express()
 
 // Setup
 const PORT = process.env.SERVER_PORT || 8080;
-
-// app.use(cors({
-//     origin: process.env.FRONTEND_DOMAIN,
-//     methods: 'POST, GET, PUT, DELETE',
-//     allowedHeaders: 'Content-Type',
-//     credentials: true,
-// }));
 
 const options = {
     origin: process.env.FRONTEND_DOMAIN,
