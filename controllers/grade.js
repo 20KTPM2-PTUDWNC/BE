@@ -136,19 +136,7 @@ export const exportStudentList = async (req, res, next) => {
     }
 }
 
-export const exportStudentGradeList = async (req, res, next) => {
-    const classId = req.params.classId;
-
-    const students = await userClassService.findAllStudentById(classId);
-
-    if (students) {
-        return res.status(200).json(students);
-    } else {
-        res.status(400).json({ message: `No list students with id: ${classId}` });
-    }
-}
-
-export const gradeList = async (req, res, next) => {
+export const exportGradeList = async (req, res, next) => {
     const assignmentId = req.params.assignmentId;
 
     const grades = await studentGradeService.findGradeAnAssignment(assignmentId);
@@ -156,6 +144,27 @@ export const gradeList = async (req, res, next) => {
     if (grades) {
         return res.status(200).json(grades);
     } else {
-        res.status(400).json({ message: `No list students with id: ${assignmentId}` });
+        res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
     }
+}
+
+export const studentGrade = async (req, res, next) => {
+    const { assignmentId, studentId, grade, mark } = req.body;
+
+    if (!assignmentId || !studentId || !grade) {
+        res.status(400).json({ message: 'Invalid fields' });
+    }
+
+    const studentGrade = await studentGradeService.updateStudentGrade({ assignmentId, studentId, grade, mark });
+    return res.status(200).json(studentGrade);
+}
+
+export const getStudentGrade = async (req, res, next) => {
+    const assignmentId = req.params.assignmentId;
+
+    if (!assignmentId) {
+        res.status(400).json({ message: 'Invalid fields' });
+    }
+    const studentGrade = await studentGradeService.findStudentGrade(assignmentId, req.user);
+    return res.status(200).json(studentGrade);
 }

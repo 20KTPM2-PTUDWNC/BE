@@ -5,8 +5,10 @@ import passport from 'passport';
 
 const assignmentRoute = express.Router();
 
-assignmentRoute.post('/assignment/addAssignment/:gradeStructureId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.addAssignment));
+assignmentRoute.post('/addAssignment/:gradeStructureId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.addAssignment));
 
-assignmentRoute.get('/assignment/showAssignmentList/:gradeStructureId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.showAssignmentList));
+assignmentRoute.get('/showAssignmentList/:gradeStructureId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.showAssignmentList));
+
+assignmentRoute.post('/reviewAssignment/:studentGradeId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.reviewAssignment));
 
 export default assignmentRoute;

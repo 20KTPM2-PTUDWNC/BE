@@ -1,8 +1,9 @@
-import classesService from "../services/class.js";
+import AssignmentReviewModel from "../models/assignmentReview.js";
 import gradeService from "../services/grade.js";
 import AssignmentModel from "../models/assignment.js";
+import assignmentReviewService from "../services/assignmentReview.js";
 
-const addAssignment  = async (req, res, next) => {
+export const addAssignment  = async (req, res, next) => {
     const gradeStructureId = req.params.gradeStructureId;
     const { name, scale } = req.body;
   
@@ -29,7 +30,7 @@ const addAssignment  = async (req, res, next) => {
     }
 }
 
-const showAssignmentList = async(req, res, next) =>{
+export const showAssignmentList = async(req, res, next) =>{
     const gradeStructureId = req.params.gradeStructureId;
     const assignmentList = await AssignmentModel.find({gradeStructureId: gradeStructureId});
 
@@ -41,4 +42,9 @@ const showAssignmentList = async(req, res, next) =>{
       }
 }
 
-export {addAssignment, showAssignmentList};
+export const reviewAssignment = async(req, res, next) =>{
+  const studentGradeId = req.params.studentGradeId;
+  const { expectedGrade, userReview } = req.body;
+
+  const assignmentReview = await assignmentReviewService.updateAssignmentReview({ expectedGrade, userReview, studentGradeId });
+}
