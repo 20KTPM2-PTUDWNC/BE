@@ -53,7 +53,11 @@ const usersSchema = new mongoose.Schema({
     verified: {
         type: Boolean,
         default: false
-    }
+    },
+    studentId: {
+        type: Number,
+        default: null,
+    },
 },
     { timestamps: true });
 

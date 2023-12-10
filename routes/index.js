@@ -18,6 +18,6 @@ router.use('/grade', gradeRoute);
 
 router.use('/userClass', userClassRoute);
 
-router.use('/', assignmentRoute);
+router.use('/assignment', assignmentRoute);
 
 export default router;

@@ -17,10 +17,10 @@ gradeRoute.patch('/:classId/arrangeGradeComposition/:gradeCompositionId/position
 
 gradeRoute.get('/exportStudentList/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportStudentList));
 
-gradeRoute.get('/exportStudentGradeList/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportStudentGradeList));
-
-gradeRoute.get('/assignmentGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.gradeList));
+gradeRoute.get('/exportGradeList/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportGradeList));
 
 gradeRoute.post('/studentGrade', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.studentGrade));
+
+gradeRoute.get('/studentGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.getStudentGrade));
 
 export default gradeRoute;

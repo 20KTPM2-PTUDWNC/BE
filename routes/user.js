@@ -11,4 +11,6 @@ userRoute.put('/:id', passport.authenticate('jwt', {session: false}), nextWrappe
 
 userRoute.post('/uploadPhoto/:id', passport.authenticate('jwt', {session: false}), nextWrapper(userController.uploadPhoto));
 
+userRoute.post('/mappingStudentId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.mappingStudentId));
+
 export default userRoute;

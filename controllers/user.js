@@ -3,7 +3,7 @@ import User from "../models/users.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 
-const getUserProfile = async (req, res, next) => {
+export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
     const user = await usersService.findUserById(userId);
 
@@ -15,7 +15,7 @@ const getUserProfile = async (req, res, next) => {
     }
 };
 
-const updateUserProfile = async (req, res, next) => {
+export const updateUserProfile = async (req, res, next) => {
     const userId = req.params.id;
     const user = await usersService.findUserById(userId);
     const { userflag, _password } = req.body;
@@ -47,7 +47,7 @@ const updateUserProfile = async (req, res, next) => {
     res.status(200).json(userUpdate);
 }
 
-const uploadPhoto = async (req, res) => {
+export const uploadPhoto = async (req, res) => {
 
     let fileName;
 
@@ -77,5 +77,21 @@ const uploadPhoto = async (req, res) => {
     });
 };
 
+export const mappingStudentId = async (req, res, next) => {
+    const { studentId, userId } = req.body;
+    const user = await usersService.findUserById(userId);
 
-export { getUserProfile, updateUserProfile, uploadPhoto };
+    if (!user) {
+        return res.status(400).json({ message: `No user with id: ${userId} ` });
+    }
+
+    if (studentId) {
+        const userUpdate = await User.findByIdAndUpdate({ _id: user._id }, { studentId },
+            {
+                new: true,
+                runValidators: true
+            });
+
+        res.status(200).json(userUpdate);
+    }
+}

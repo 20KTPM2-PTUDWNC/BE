@@ -19,6 +19,10 @@ const studentGradeSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "Assignment"
     },
+    grade: {
+        type: Number,
+        default: null
+    },
     filePath: {
         type: String,
         required: null
