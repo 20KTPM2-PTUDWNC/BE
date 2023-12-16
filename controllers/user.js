@@ -95,3 +95,28 @@ export const mappingStudentId = async (req, res, next) => {
         res.status(200).json(userUpdate);
     }
 }
+
+export const getAllUser = async (req, res, next) => {
+    const users = await usersService.findAllUsers();
+    return res.status(200).json(users);
+}
+
+export const lockAccount = async (req, res, next) => {
+    const userId = req.params.userId;
+    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: new Date() },
+        {
+            new: true,
+            runValidators: true
+        });
+    return res.status(200).json({ message: 'Successfully' });
+}
+
+export const unmappingStudentId = async (req, res, next) => {
+    const userId = req.params.userId;
+    await User.findByIdAndUpdate({ _id: userId }, { studentId: null },
+        {
+            new: true,
+            runValidators: true
+        });
+    return res.status(200).json({ message: 'Successfully' });
+}

@@ -3,7 +3,8 @@ import userClassService from "../services/userClass.js";
 import usersService from "../services/users.js";
 import userClassModel from "../models/userClass.js";
 import jwt from "jsonwebtoken";
-import { transporter } from "../config/email.js"
+import { transporter } from "../config/email.js";
+import ClassModel from "../models/class.js";
 
 export const createClass = async (req, res, next) => {
     const { name, subject } = req.body;
@@ -47,21 +48,21 @@ export const showClassDetail = async (req, res, next) => {
     }
 }
 
-export const getAllClassById = async(req, res, next) => {
+export const getAllClassById = async (req, res, next) => {
     const userId = req.user._id;
 
-    const listClass = await userClassModel.find({userId: userId});
+    const listClass = await userClassModel.find({ userId: userId });
     let listClassInfor = [];
 
-    if (userId){
-        for(let i = 0; i < listClass.length; i++){
-            const _class = await classesService.findClassById({_id: listClass[i].classId});
+    if (userId) {
+        for (let i = 0; i < listClass.length; i++) {
+            const _class = await classesService.findClassById({ _id: listClass[i].classId });
             listClassInfor = [...listClassInfor, _class];
-        }    
+        }
         return res.status(200).json(listClassInfor);
     }
-    else{
-        res.status(400).json({message: "No user"});
+    else {
+        res.status(400).json({ message: "No user" });
     }
 }
 
@@ -189,5 +190,24 @@ export const joinClass = async (req, res, next) => {
     }
     else {
         return res.status(400).json({ message: `No class with id: ${classId} ` });
+    }
+}
+
+export const activeClass = async (req, res, next) => {
+    const classId = req.params.classId;
+    const status = req.body.status;
+
+    const _class = await classesService.findClassById(classId);
+
+    if (_class) {
+        await ClassModel.findByIdAndUpdate({ _id: classId }, { status },
+            {
+                new: true,
+                runValidators: true
+            });
+        return res.status(200).json({ message: 'Successfully' });
+    }
+    else {
+        res.status(400).json({ message: `No class with id: ${classId} ` });
     }
 }
