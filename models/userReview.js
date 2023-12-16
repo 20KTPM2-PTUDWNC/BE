@@ -15,6 +15,10 @@ const userReviewSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    sort:{
+        type: String,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now,
