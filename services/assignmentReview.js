@@ -6,17 +6,13 @@ export default {
     updateAssignmentReview: async (data) => {
         const assignmentReview = await AssignmentReviewModel.findOneAndUpdate({ studentGradeId: data.studentGradeId }, data, { upsert: true, new: true });
 
-        // blank => insert
-        const insertData = _.filter(
-            data.userReview, function (d) {
-                return !d._id;
-            }
-        );
+        data.userReview = data.userReview.map((d) => ({
+            ...d,
+            assignmentReviewId: assignmentReview.id
+        }))
 
-        await UserReviewModel.create({...insertData, assignmentReviewId: assignmentReview._id});
-
-        // != blank => update
-        let updateData = _.differenceBy(data.userReview, insertData);
-        await UserReviewModel.updateMany(updateData);
+        if (data.userReview.length > 0) {
+            await UserReviewModel.create(data.userReview);
+        }
     },
 }

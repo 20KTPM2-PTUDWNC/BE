@@ -13,4 +13,10 @@ userRoute.post('/uploadPhoto/:id', passport.authenticate('jwt', {session: false}
 
 userRoute.post('/mappingStudentId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.mappingStudentId));
 
+userRoute.get('/', passport.authenticate('jwt', {session: false}), nextWrapper(userController.getAllUser));
+
+userRoute.patch('/lockAccount/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.lockAccount));
+
+userRoute.patch('/unmappingStudentId/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.unmappingStudentId));
+
 export default userRoute;

@@ -34,6 +34,10 @@ const classesSchema = new mongoose.Schema({
     room: {
         type: String,
     },
+    status: {
+        type: Number,
+        default: 0
+    },
     createdAt: {
         type: Date,
         default: Date.now,

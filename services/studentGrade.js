@@ -34,7 +34,7 @@ export default {
     if (studentGrade) {
       const assignmentReview = await AssignmentReviewModel.findOne({ studentGradeId: studentGrade.id });
 
-      const projection = { _id: 0, studentId: 1, name: 1 };
+      const projection = { _id: 1, studentId: 1, name: 1 };
 
       let result = {
         ...studentGrade._doc,
