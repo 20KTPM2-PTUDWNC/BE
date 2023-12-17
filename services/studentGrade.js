@@ -55,5 +55,9 @@ export default {
     }
 
     return;
-  }
+  },
+  findAllStudentInClass: async (classId) => {
+    const projection = { _id: 0, studentId: 1, name: 1 };
+      return await UserClassModel.find({ classId, userRole: 0 }, {_id: 1}).populate('userId', projection);
+    }
 }
