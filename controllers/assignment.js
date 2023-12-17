@@ -14,6 +14,15 @@ export const addAssignment = async (req, res, next) => {
   const gradeStructure = await gradeService.findGradeById(gradeStructureId);
 
   if (gradeStructure) {
+    // Calculate the total scale of existing assignments
+    const existingAssignments = await AssignmentModel.find({ gradeStructureId: gradeStructureId });
+    const totalExistingScale = existingAssignments.reduce((total, assignment) => total + assignment.scale, 0);
+
+    // Check if adding the new assignment would exceed the gradeScale limit
+    if (totalExistingScale + scale > gradeStructure.gradeScale) {
+      return res.status(400).json({ message: 'Total scale exceeds gradeScale limit' });
+    }
+
     // Create the new assignment object
     const newAssignment = {
       name: name,
@@ -26,9 +35,10 @@ export const addAssignment = async (req, res, next) => {
 
     return res.status(200).json({ message: "Assignment added successfully" });
   } else {
-    res.status(400).json({ message: `No class with id: ${gradeStructure}` });
+    res.status(400).json({ message: `No grade structure with id: ${gradeStructure}` });
   }
-}
+};
+
 
 export const showAssignmentList = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
