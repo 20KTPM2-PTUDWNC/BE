@@ -9,6 +9,8 @@ classRoute.post('/createClass', passport.authenticate('jwt', {session: false}), 
 
 classRoute.get('/getAllClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClass));
 
+classRoute.get('/getAllClassById', passport.authenticate('jwt', {session: false}), nextWrapper(classController.getAllClassById));
+
 classRoute.get('/showClassDetail/:id', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showClassDetail));
 
 classRoute.post('/createInvitationLink', passport.authenticate('jwt', {session: false}), nextWrapper(classController.createInvitationLink));
