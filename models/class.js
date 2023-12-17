@@ -2,7 +2,17 @@ import { ObjectId } from 'bson';
 import mongoose, { Schema } from 'mongoose';
 import Grade from "../models/grade.js";
 
+const ClassFlag = {
+    Active: 0,
+    Inactive: 1
+}
+
 const classesSchema = new mongoose.Schema({
+    status: {
+        type: Number,
+        default: ClassFlag.Active,
+        required: true
+    },
     name: {
         type: String,
         require: true
