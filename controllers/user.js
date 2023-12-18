@@ -81,30 +81,39 @@ export const uploadPhoto = async (req, res) => {
 
 export const mappingStudentId = async (req, res, next) => {
     const { studentId, userId } = req.body;
+
+
+    if (!studentId || !userId) {
+        return res.status(400).json({ message: 'Invalid fields' });
+    }
+
     const user = await usersService.findUserById(userId);
+
 
     if (!user) {
         return res.status(400).json({ message: `No user with id: ${userId} ` });
     }
 
-    if (studentId) {
+
+    if (await usersService.isStudentIdMapped(studentId, userId)) {
         const userUpdate = await User.findByIdAndUpdate({ _id: user._id }, { studentId },
             {
                 new: true,
                 runValidators: true
             });
 
-        let userClass = await UserClassModel.find({ userId: user.id });
+        let userClass = await UserClassModel.find({ userId });
 
         userClass = userClass.map((d) => ({
             studentId,
             classId: d._doc.classId,
-            name: user.name
+            name: user.name,
+            userId
         }));
 
         const bulkOps = userClass.map(studentData => ({
             updateOne: {
-                filter: { studentId, classId: studentData.classId },
+                filter: { userId, classId: studentData.classId },
                 update: { $set: studentData },
                 upsert: true
             }
@@ -112,7 +121,9 @@ export const mappingStudentId = async (req, res, next) => {
 
         await StudentClassModel.bulkWrite(bulkOps);
 
-        res.status(200).json(userUpdate);
+        return res.status(200).json(userUpdate);
+    } else {
+        return res.status(400).json({ message: `Existed student mapped with studentId: ${studentId} ` });
     }
 }
 
@@ -138,5 +149,7 @@ export const unmappingStudentId = async (req, res, next) => {
             new: true,
             runValidators: true
         });
+    
+    await StudentClassModel.updateMany({userId}, {studentId: null});
     return res.status(200).json({ message: 'Successfully' });
 }

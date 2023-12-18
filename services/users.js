@@ -5,11 +5,11 @@ export default {
     return await UsersModel.create(userEncrypt);
   },
   findUserByEmail: async (email) => {
-    return await UsersModel.findOne({email, deleteAt: null});
+    return await UsersModel.findOne({ email, deleteAt: null });
   },
   findUserById: async (id) => {
     const user = await UsersModel.findById(id);
-    user.password = undefined;
+    user ? user.password = undefined : null;
     return user;
   },
   findAllUsers: async () => {
@@ -17,8 +17,8 @@ export default {
   },
   findOrCreate: async (data) => {
     const email = data.emails[0].value;
-    let user = await UsersModel.findOne({email: email});
-    if(!user) {
+    let user = await UsersModel.findOne({ email: email });
+    if (!user) {
       user = await UsersModel.create({
         name: displayName,
         email: email,
@@ -29,5 +29,14 @@ export default {
     }
 
     return user;
+  },
+  isStudentIdMapped: async (studentId, userId) => {
+    const user = await UsersModel.findOne({ studentId });
+
+    if(user) {
+      return user.id === userId? true : false;
+    }
+
+    return true;
   }
 }
