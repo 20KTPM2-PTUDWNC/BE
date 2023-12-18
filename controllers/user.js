@@ -2,6 +2,8 @@ import usersService from "../services/users.js";
 import User from "../models/users.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
+import UserClassModel from "../models/userClass.js";
+import StudentClassModel from "../models/studentClass.js";
 
 export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
@@ -91,6 +93,24 @@ export const mappingStudentId = async (req, res, next) => {
                 new: true,
                 runValidators: true
             });
+
+        let userClass = await UserClassModel.find({ userId: user.id });
+
+        userClass = userClass.map((d) => ({
+            studentId,
+            classId: d._doc.classId,
+            name: user.name
+        }));
+
+        const bulkOps = userClass.map(studentData => ({
+            updateOne: {
+                filter: { studentId, classId: studentData.classId },
+                update: { $set: studentData },
+                upsert: true
+            }
+        }));
+
+        await StudentClassModel.bulkWrite(bulkOps);
 
         res.status(200).json(userUpdate);
     }

@@ -1,6 +1,6 @@
 import classesService from "../services/class.js";
 import gradeService from "../services/grade.js";
-import userClassService from "../services/userClass.js";
+import studentClassService from "../services/studentClass.js";
 import studentGradeService from "../services/studentGrade.js";
 import GradeModel from "../models/grade.js";
 import AssignmentModel from "../models/assignment.js";
@@ -127,7 +127,7 @@ export const arrangeGradeComposition = async (req, res, next) => {
 export const exportStudentList = async (req, res, next) => {
     const classId = req.params.classId;
 
-    const students = await studentGradeService.findAllStudentInClass(classId);
+    const students = await studentClassService.findAllStudentInClass(classId);
 
     if (students) {
         return res.status(200).json(students);
