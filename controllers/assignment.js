@@ -5,6 +5,7 @@ import assignmentReviewService from "../services/assignmentReview.js";
 import studentGradeService from "../services/studentGrade.js";
 import Papa from "papaparse";
 import fs from "fs";
+import StudentGradeModel from "../models/studentGrade.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -110,3 +111,21 @@ export const uploadGradeList = async (req, res) => {
       res.status(400).json({ message: `No assignment with id: ${assignmentId} ` });
     }
 };
+
+export const markFinalDecision = async (req, res, next) => {
+  const assignmentReviewId = req.params.assignmentReviewId;
+  const { expectedGrade } = req.body;
+
+  if (assignmentReviewId && expectedGrade) {
+    const assignmentReview = await AssignmentReviewModel.findById(assignmentReviewId);
+
+    await AssignmentReviewModel.findByIdAndUpdate({ _id: assignmentReviewId }, {expectedGrade, finalDecision: 1});
+
+    await StudentGradeModel.findByIdAndUpdate({ _id: assignmentReview.studentGradeId }, { grade: expectedGrade });
+
+    return res.status(200).json({ message: 'Successfully' });
+  } else {
+    return res.status(400).json({ message: 'Invalid fields' });
+  }
+
+}

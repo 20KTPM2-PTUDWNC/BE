@@ -25,4 +25,6 @@ assignmentRoute.post('/reviewAssignment/:studentGradeId', passport.authenticate(
 
 assignmentRoute.post('/uploadGradeList/:assignmentId', upload.single("file"), passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.uploadGradeList));
 
+assignmentRoute.put('/markFinalDecision/:assignmentReviewId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.markFinalDecision));
+
 export default assignmentRoute;

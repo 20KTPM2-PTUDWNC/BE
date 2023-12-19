@@ -15,6 +15,10 @@ const assignmentReviewSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    finalDecision:{
+        type: Number,
+        default: 0
+    },
     createdAt: {
         type: Date,
         default: Date.now,
