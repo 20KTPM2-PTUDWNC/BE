@@ -9,7 +9,6 @@ const studentClassSchema = new mongoose.Schema({
     userId:{
         type: mongoose.Types.ObjectId,
         ref: "Users",
-        required: true,
     },
     studentId: {
         type: Number,
