@@ -23,4 +23,6 @@ gradeRoute.post('/studentGrade', passport.authenticate('jwt', {session: false}),
 
 gradeRoute.get('/studentGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.getStudentGrade));
 
+gradeRoute.get('/exportGradeBoard/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.exportGradeBoard));
+
 export default gradeRoute;
