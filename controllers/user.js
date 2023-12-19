@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import UserClassModel from "../models/userClass.js";
 import StudentClassModel from "../models/studentClass.js";
+import studentClass from "../models/studentClass.js";
 
 export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
@@ -82,18 +83,15 @@ export const uploadPhoto = async (req, res) => {
 export const mappingStudentId = async (req, res, next) => {
     const { studentId, userId } = req.body;
 
-
     if (!studentId || !userId) {
         return res.status(400).json({ message: 'Invalid fields' });
     }
 
     const user = await usersService.findUserById(userId);
 
-
     if (!user) {
         return res.status(400).json({ message: `No user with id: ${userId} ` });
     }
-
 
     if (await usersService.isStudentIdMapped(studentId, userId)) {
         const userUpdate = await User.findByIdAndUpdate({ _id: user._id }, { studentId },
@@ -101,6 +99,8 @@ export const mappingStudentId = async (req, res, next) => {
                 new: true,
                 runValidators: true
             });
+
+        await StudentClassModel.updateMany({studentId}, {userId});
 
         let userClass = await UserClassModel.find({ userId });
 
