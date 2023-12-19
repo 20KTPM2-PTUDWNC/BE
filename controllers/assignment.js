@@ -2,6 +2,9 @@ import AssignmentReviewModel from "../models/assignmentReview.js";
 import gradeService from "../services/grade.js";
 import AssignmentModel from "../models/assignment.js";
 import assignmentReviewService from "../services/assignmentReview.js";
+import studentGradeService from "../services/studentGrade.js";
+import Papa from "papaparse";
+import fs from "fs";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -63,3 +66,47 @@ export const reviewAssignment = async (req, res, next) => {
   }
 
 }
+
+export const uploadGradeList = async (req, res) => {
+    const assignmentId = req.params.assignmentId;
+    const assignment = await AssignmentModel.findById({_id: assignmentId});
+
+    if (assignment) {
+        const filePath = req.file.path;
+
+        if (!fs.existsSync(filePath)) {
+          return res.status(400).json({ error: "File not found" });
+        }
+
+        const readStream = fs.createReadStream(filePath);
+        readStream.on('error', (err) => {
+          return res.status(500).json({ error: "Error reading the file" });
+        });
+
+        let parsedData = [];
+
+        Papa.parse(readStream, {
+            header: true,
+            step: async function (result) {
+              parsedData.push(result.data);
+
+              const gradeData = {
+                  studentId: result.data.studentId,
+                  grade: result.data.grade,
+                  assignmentId: assignmentId,
+              };
+
+              await studentGradeService.save(gradeData);
+              
+            },
+            complete: function () {
+                res.json(parsedData);
+            },
+            error: function (error) {
+                return res.status(400).json({ error: "CSV parsing error has occurred" });
+            }
+        });
+    } else {
+      res.status(400).json({ message: `No assignment with id: ${assignmentId} ` });
+    }
+};

@@ -2,8 +2,20 @@ import * as express from 'express';
 import * as classController from '../controllers/class.js';
 import nextWrapper from '../middlewares/nextWrapper.js';
 import passport from 'passport';
+import multer from "multer";
 
 const classRoute = express.Router();
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/'); // Thư mục để lưu trữ tệp đã tải lên
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 classRoute.post('/createClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.createClass));
 
@@ -22,5 +34,7 @@ classRoute.post('/acceptInvitation', passport.authenticate('jwt', {session: fals
 classRoute.post('/joinClass', passport.authenticate('jwt', {session: false}), nextWrapper(classController.joinClass));
 
 classRoute.put('/activeClass/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(classController.activeClass));
+
+classRoute.post('/uploadStudentList/:classId', upload.single("file"), passport.authenticate('jwt', {session: false}), nextWrapper(classController.uploadStudentList));
 
 export default classRoute;
