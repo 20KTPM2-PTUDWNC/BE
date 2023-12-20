@@ -174,3 +174,49 @@ export const getStudentGrade = async (req, res, next) => {
     }
     res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
 }
+
+export const exportGradeBoard = async (req, res, next) => {
+    const classId = req.params.classId;
+  
+    try {
+      // Lấy thông tin về Grade Structure từ cơ sở dữ liệu
+      const _class = await classesService.findClassById(classId);
+  
+      if (!_class) {
+        return res.status(400).json({ message: `No class with id: ${classId}` });
+      }
+  
+      // Lấy danh sách Grade Compositions cho Grade Structure
+      const gradeCompositions = await GradeModel.find({ classId: classId });
+  
+      // Tạo một Grade Board object
+      const gradeBoard = {
+        gradeCompositions: [],
+      };
+  
+      // Duyệt qua danh sách Grade Compositions và lấy thông tin Assignment
+      for (const composition of gradeCompositions) {
+        const assignments = await AssignmentModel.find({ gradeStructureId: composition._id });
+  
+        const gradeComposition = {
+          id: composition._id,
+          name: composition.name,
+          gradeScale: composition.gradeScale,
+          assignments: assignments.map(assignment => ({
+            id: assignment._id,
+            name: assignment.name,
+            scale: assignment.scale,
+          })),
+        };
+  
+        gradeBoard.gradeCompositions.push(gradeComposition);
+      }
+  
+      // Trả về Grade Board
+      res.status(200).json({ gradeBoard });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+  
