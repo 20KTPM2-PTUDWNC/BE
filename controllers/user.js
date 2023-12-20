@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import UserClassModel from "../models/userClass.js";
 import StudentClassModel from "../models/studentClass.js";
+import Papa from "papaparse";
+import fs from "fs";
 import studentClass from "../models/studentClass.js";
 
 export const getUserProfile = async (req, res, next) => {
@@ -153,3 +155,93 @@ export const unmappingStudentId = async (req, res, next) => {
     await StudentClassModel.updateMany({userId}, {studentId: null});
     return res.status(200).json({ message: 'Successfully' });
 }
+
+export const mappingStudentIdByCsv = async (req, res, next) => {
+
+    const filePath = req.file.path;
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(400).json({ error: "File not found" });
+    }
+
+    const readStream = fs.createReadStream(filePath);
+    readStream.on('error', (err) => {
+        res.status(500).json({ error: "Error reading the file" });
+    });
+
+    let parsedData = [];
+    let sentResponse = false; // Biến kiểm soát để đảm bảo chỉ gửi một lần
+
+    Papa.parse(readStream, {
+        header: true,
+        step: async function (result) {
+            parsedData.push(result.data);
+
+            const studentId = result.data.studentId;
+            const name = result.data.name;
+            const email = result.data.email;
+
+            const existingStudent = await studentClass.findOne({ studentId: studentId });
+
+            if (!existingStudent) {
+                const checkStudent = await usersService.findUserByEmail(email);
+                const userId = checkStudent._id;
+
+                if (checkStudent) {
+                    if (await usersService.isStudentIdMapped(studentId, userId)) {
+                        const userUpdate = await User.findByIdAndUpdate({ _id: userId }, { studentId },
+                            {
+                                new: true,
+                                runValidators: true
+                            });
+
+                        await StudentClassModel.updateMany({ studentId }, { userId });
+
+                        let userClass = await UserClassModel.find({ userId });
+
+                        userClass = userClass.map((d) => ({
+                            studentId,
+                            name,
+                            userId,
+                            email
+                        }));
+
+                        const bulkOps = userClass.map(studentData => ({
+                            updateOne: {
+                                filter: { userId, classId: studentData.classId },
+                                update: { $set: studentData },
+                                upsert: true
+                            }
+                        }));
+
+                        await StudentClassModel.bulkWrite(bulkOps);
+
+                        if (!sentResponse) {
+                            res.status(200).json({message: 'Mapping student Ids by uploading Excel file successfully'});
+                            sentResponse = true;
+                        }
+                    } else {
+                        if (!sentResponse) {
+                            res.status(400).json({ message: `Existed student mapped with studentId: ${studentId} ` });
+                            sentResponse = true;
+                        }
+                    }
+                }
+            }
+        },
+        complete: function () {
+            if (!sentResponse) {
+                // Chỉ gửi dữ liệu đã phân tích một lần sau khi xử lý hoàn tất
+                res.json(parsedData);
+                sentResponse = true;
+            }
+        },
+        error: function (error) {
+            if (!sentResponse) {
+                res.status(400).json({ error: "CSV parsing error has occurred" });
+                sentResponse = true;
+            }
+        }
+    });
+}
+

@@ -216,50 +216,50 @@ export const activeClass = async (req, res, next) => {
 }
 
 export const uploadStudentList = async (req, res) => {
-  const classId = req.params.classId;
-  const _class = await classesService.findClassById(classId);
+    const classId = req.params.classId;
+    const _class = await classesService.findClassById(classId);
 
-  if (_class) {
-    const filePath = req.file.path;
+    if (_class) {
+        const filePath = req.file.path;
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(400).json({ error: "File not found" });
-    }
-
-    const readStream = fs.createReadStream(filePath);
-    readStream.on('error', (err) => {
-      return res.status(500).json({ error: "Error reading the file" });
-    });
-
-    let parsedData = [];
-
-    Papa.parse(readStream, {
-      header: true,
-      step: async function (result) {
-        parsedData.push(result.data);
-
-        const existingStudent = await studentClassService.findByStudentIdAndClassId(result.data.studentId, classId)
-
-        if (!existingStudent) {
-            const studentData = {
-            studentId: result.data.studentId,
-            name: result.data.name,
-            classId: classId, // Associate the student with the class
-            };
-
-            await studentClassService.save(studentData);
+        if (!fs.existsSync(filePath)) {
+        return res.status(400).json({ error: "File not found" });
         }
-      },
-      complete: function () {
-        res.json(parsedData);
-      },
-      error: function (error) {
-        return res.status(400).json({ error: "CSV parsing error has occurred" });
-      }
-    });
-  } else {
-    res.status(400).json({ message: `No class with id: ${classId} ` });
-  }
+
+        const readStream = fs.createReadStream(filePath);
+        readStream.on('error', (err) => {
+        return res.status(500).json({ error: "Error reading the file" });
+        });
+
+        let parsedData = [];
+
+        Papa.parse(readStream, {
+        header: true,
+        step: async function (result) {
+            parsedData.push(result.data);
+
+            const existingStudent = await studentClassService.findByStudentIdAndClassId(result.data.studentId, classId)
+
+            if (!existingStudent) {
+                const studentData = {
+                studentId: result.data.studentId,
+                name: result.data.name,
+                classId: classId, // Associate the student with the class
+                };
+
+                await studentClassService.save(studentData);
+            }
+        },
+        complete: function () {
+            res.json(parsedData);
+        },
+        error: function (error) {
+            return res.status(400).json({ error: "CSV parsing error has occurred" });
+        }
+        });
+    } else {
+        res.status(400).json({ message: `No class with id: ${classId} ` });
+    }
 };
 
 
