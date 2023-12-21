@@ -6,6 +6,7 @@ import studentGradeService from "../services/studentGrade.js";
 import Papa from "papaparse";
 import fs from "fs";
 import StudentGradeModel from "../models/studentGrade.js";
+import userService from "../services/users.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -91,10 +92,21 @@ export const uploadGradeList = async (req, res) => {
             step: async function (result) {
               parsedData.push(result.data);
 
+              const studentId = result.data.studentId;
+              const grade = result.data.grade;
+              const email = result.data.email;
+
+              const checkUser = await userService.findUserByEmail(email);
+
+              if (!checkUser){
+                res.status(400).json({ message: `No student with email: ${email} ` });
+              }
+
               const gradeData = {
-                  studentId: result.data.studentId,
-                  grade: result.data.grade,
+                  studentId: studentId,
+                  grade: grade,
                   assignmentId: assignmentId,
+                  userId: checkUser._id
               };
 
               await studentGradeService.save(gradeData);

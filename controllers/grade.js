@@ -4,6 +4,7 @@ import studentClassService from "../services/studentClass.js";
 import studentGradeService from "../services/studentGrade.js";
 import GradeModel from "../models/grade.js";
 import AssignmentModel from "../models/assignment.js";
+import StudentGradeModel from "../models/studentGrade.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -218,5 +219,39 @@ export const exportGradeBoard = async (req, res, next) => {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
     }
-  };
+};
+
+export const showGradeById = async (req, res, next) => {
+    const userId = req.user._id;
+    try {
+        const studentGrades = await StudentGradeModel.find({ userId: userId });
+
+        if (!studentGrades || studentGrades.length === 0) {
+            return res.status(400).json({ message: `No student with id: ${userId}` });
+        }
+
+        const assignmentsInfo = await Promise.all(
+            studentGrades.map(async (grade) => {
+                const assignment = await AssignmentModel.findById(grade.assignmentId);
+                if (assignment && grade.mark === 1){
+                    const gradeComposition = await GradeModel.findById({_id: assignment.gradeStructureId});
+                    if(gradeComposition){
+                        return {
+                            gradeCompositionName: gradeComposition.name,
+                            assignmentName: assignment.name,
+                            grade: grade.grade
+                        };
+                    }
+                }
+                return null;
+            })
+        );
+
+        return res.status(200).json(assignmentsInfo.filter(assignment => assignment !== null));
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
   
