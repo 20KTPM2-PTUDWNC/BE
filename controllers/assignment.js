@@ -8,6 +8,8 @@ import fs from "fs";
 import StudentGradeModel from "../models/studentGrade.js";
 import userService from "../services/users.js";
 import GradeStructureModel from "../models/grade.js";
+import { Description, Title } from "../models/notification.js";
+import NotificationModel from "../models/notification.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -64,6 +66,22 @@ export const reviewAssignment = async (req, res, next) => {
 
   if (studentGradeId) {
     await assignmentReviewService.updateAssignmentReview({ expectedGrade, userReview, studentGradeId });
+
+    const assignment = await StudentGradeModel.findOne({ _id: studentGradeId })
+      .populate([
+        { path: 'userId', select: 'id studentId' },
+        { path: 'assignmentId', select: 'id name' }
+      ]);
+
+    // notification
+    const notification = {
+      title: Title.Review,
+      description: Description.Review(assignment._doc.assignmentId._doc.name),
+      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`,
+      receiverId: assignment._doc.userId._doc._id
+    }
+
+    await NotificationModel.create(notification);
 
     return res.status(200).json({ message: 'Successfully' });
   }
@@ -136,6 +154,22 @@ export const markFinalDecision = async (req, res, next) => {
 
     await StudentGradeModel.findByIdAndUpdate({ _id: assignmentReview.studentGradeId }, { grade: expectedGrade });
 
+    const assignment = await StudentGradeModel.findOne({ _id: assignmentReview.studentGradeId })
+      .populate([
+        { path: 'userId', select: 'id studentId' },
+        { path: 'assignmentId', select: 'id name' }
+      ]);
+
+    // notification
+    const notification = {
+      title: Title.Final,
+      description: Description.Final(assignment._doc.assignmentId._doc.name),
+      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`,
+      receiverId: assignment._doc.userId._doc._id
+    }
+
+    await NotificationModel.create(notification);
+
     return res.status(200).json({ message: 'Successfully' });
   } else {
     return res.status(400).json({ message: 'Invalid fields' });
@@ -163,14 +197,14 @@ export const assignmentReviews = async (req, res, next) => {
         const ids = studentGradeIds.map((sg) => sg._id);
 
         return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
-        .populate({
-          path: 'studentGradeId',
-          select: 'id grade userId assignmentId',
-          populate: [
-            { path: 'userId', select: 'id name studentId' },
-            { path: 'assignmentId', select: 'id name scale' }
-          ]
-        });
+          .populate({
+            path: 'studentGradeId',
+            select: 'id grade userId assignmentId',
+            populate: [
+              { path: 'userId', select: 'id name studentId' },
+              { path: 'assignmentId', select: 'id name scale' }
+            ]
+          });
       })
       .then((assignmentReviews) => {
         return res.status(200).json(assignmentReviews);
