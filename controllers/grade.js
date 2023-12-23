@@ -5,6 +5,8 @@ import studentGradeService from "../services/studentGrade.js";
 import GradeModel from "../models/grade.js";
 import AssignmentModel from "../models/assignment.js";
 import StudentGradeModel from "../models/studentGrade.js";
+import NotificationModel, { Description, Title } from "../models/notification.js";
+import UsersModel from "../models/users.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -150,14 +152,34 @@ export const exportGradeList = async (req, res, next) => {
 }
 
 export const studentGrade = async (req, res, next) => {
-    const { assignmentId, studentId, grade, mark } = req.body;
+    const { assignmentId, userId, grade, mark } = req.body;
 
-    if (!assignmentId || !studentId || !grade) {
+    if (!assignmentId || !userId || !grade) {
         res.status(400).json({ message: 'Invalid fields' });
     }
 
-    const studentGrade = await studentGradeService.updateStudentGrade({ assignmentId, studentId, grade, mark });
-    return res.status(200).json(studentGrade);
+    const user = await UsersModel.findById(userId);
+
+    const assignment = await AssignmentModel.findById(assignmentId);
+
+    if (user && assignment) {
+        const studentGrade = await studentGradeService.updateStudentGrade({ assignmentId, userId: userId, studentId: user.studentId, grade, mark });
+
+        // notification
+        const notification = {
+            title: Title.Grade,
+            description: Description.Grade(assignment.name),
+            url: `class/assignment/${assignmentId}`,
+            receiverId: userId
+        }
+
+        await NotificationModel.create(notification);
+
+        return res.status(200).json(studentGrade);
+    } else {
+        const message = user ? `No user with id: ${userId} ` : `No assignment with id: ${assignmentId} `;
+        return res.status(400).json({ message });
+    }
 }
 
 export const getStudentGrade = async (req, res, next) => {
@@ -168,7 +190,7 @@ export const getStudentGrade = async (req, res, next) => {
     }
 
     const assignment = await AssignmentModel.findById(assignmentId);
-    
+
     if (assignment) {
         const studentGrade = await studentGradeService.findStudentGrade(assignmentId, req.user);
         return res.status(200).json(studentGrade);
@@ -178,46 +200,46 @@ export const getStudentGrade = async (req, res, next) => {
 
 export const exportGradeBoard = async (req, res, next) => {
     const classId = req.params.classId;
-  
+
     try {
-      // Lấy thông tin về Grade Structure từ cơ sở dữ liệu
-      const _class = await classesService.findClassById(classId);
-  
-      if (!_class) {
-        return res.status(400).json({ message: `No class with id: ${classId}` });
-      }
-  
-      // Lấy danh sách Grade Compositions cho Grade Structure
-      const gradeCompositions = await GradeModel.find({ classId: classId });
-  
-      // Tạo một Grade Board object
-      const gradeBoard = {
-        gradeCompositions: [],
-      };
-  
-      // Duyệt qua danh sách Grade Compositions và lấy thông tin Assignment
-      for (const composition of gradeCompositions) {
-        const assignments = await AssignmentModel.find({ gradeStructureId: composition._id });
-  
-        const gradeComposition = {
-          id: composition._id,
-          name: composition.name,
-          gradeScale: composition.gradeScale,
-          assignments: assignments.map(assignment => ({
-            id: assignment._id,
-            name: assignment.name,
-            scale: assignment.scale,
-          })),
+        // Lấy thông tin về Grade Structure từ cơ sở dữ liệu
+        const _class = await classesService.findClassById(classId);
+
+        if (!_class) {
+            return res.status(400).json({ message: `No class with id: ${classId}` });
+        }
+
+        // Lấy danh sách Grade Compositions cho Grade Structure
+        const gradeCompositions = await GradeModel.find({ classId: classId });
+
+        // Tạo một Grade Board object
+        const gradeBoard = {
+            gradeCompositions: [],
         };
-  
-        gradeBoard.gradeCompositions.push(gradeComposition);
-      }
-  
-      // Trả về Grade Board
-      res.status(200).json({ gradeBoard });
+
+        // Duyệt qua danh sách Grade Compositions và lấy thông tin Assignment
+        for (const composition of gradeCompositions) {
+            const assignments = await AssignmentModel.find({ gradeStructureId: composition._id });
+
+            const gradeComposition = {
+                id: composition._id,
+                name: composition.name,
+                gradeScale: composition.gradeScale,
+                assignments: assignments.map(assignment => ({
+                    id: assignment._id,
+                    name: assignment.name,
+                    scale: assignment.scale,
+                })),
+            };
+
+            gradeBoard.gradeCompositions.push(gradeComposition);
+        }
+
+        // Trả về Grade Board
+        res.status(200).json({ gradeBoard });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 
@@ -233,9 +255,9 @@ export const showGradeById = async (req, res, next) => {
         const assignmentsInfo = await Promise.all(
             studentGrades.map(async (grade) => {
                 const assignment = await AssignmentModel.findById(grade.assignmentId);
-                if (assignment && grade.mark === 1){
-                    const gradeComposition = await GradeModel.findById({_id: assignment.gradeStructureId});
-                    if(gradeComposition){
+                if (assignment && grade.mark === 1) {
+                    const gradeComposition = await GradeModel.findById({ _id: assignment.gradeStructureId });
+                    if (gradeComposition) {
                         return {
                             gradeCompositionName: gradeComposition.name,
                             assignmentName: assignment.name,
@@ -254,4 +276,3 @@ export const showGradeById = async (req, res, next) => {
     }
 };
 
-  
