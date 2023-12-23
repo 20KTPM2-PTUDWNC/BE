@@ -33,4 +33,8 @@ userRoute.patch('/unmappingStudentId/:userId', passport.authenticate('jwt', {ses
 
 userRoute.post('/mappingStudentIdByCsv', upload.single("file"), passport.authenticate('jwt', {session: false}), nextWrapper(userController.mappingStudentIdByCsv));
 
+userRoute.get('/notification/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.notification));
+
+userRoute.put('/notification/:notificationId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.markNotification));
+
 export default userRoute;
