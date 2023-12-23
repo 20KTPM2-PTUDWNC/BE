@@ -7,6 +7,7 @@ import Papa from "papaparse";
 import fs from "fs";
 import StudentGradeModel from "../models/studentGrade.js";
 import userService from "../services/users.js";
+import GradeStructureModel from "../models/grade.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -70,58 +71,58 @@ export const reviewAssignment = async (req, res, next) => {
 }
 
 export const uploadGradeList = async (req, res) => {
-    const assignmentId = req.params.assignmentId;
-    const assignment = await AssignmentModel.findById({_id: assignmentId});
+  const assignmentId = req.params.assignmentId;
+  const assignment = await AssignmentModel.findById({ _id: assignmentId });
 
-    if (assignment) {
-        const filePath = req.file.path;
+  if (assignment) {
+    const filePath = req.file.path;
 
-        if (!fs.existsSync(filePath)) {
-          return res.status(400).json({ error: "File not found" });
+    if (!fs.existsSync(filePath)) {
+      return res.status(400).json({ error: "File not found" });
+    }
+
+    const readStream = fs.createReadStream(filePath);
+    readStream.on('error', (err) => {
+      return res.status(500).json({ error: "Error reading the file" });
+    });
+
+    let parsedData = [];
+
+    Papa.parse(readStream, {
+      header: true,
+      step: async function (result) {
+        parsedData.push(result.data);
+
+        const studentId = result.data.studentId;
+        const grade = result.data.grade;
+        const email = result.data.email;
+
+        const checkUser = await userService.findUserByEmail(email);
+
+        if (!checkUser) {
+          res.status(400).json({ message: `No student with email: ${email} ` });
         }
 
-        const readStream = fs.createReadStream(filePath);
-        readStream.on('error', (err) => {
-          return res.status(500).json({ error: "Error reading the file" });
-        });
+        const gradeData = {
+          studentId: studentId,
+          grade: grade,
+          assignmentId: assignmentId,
+          userId: checkUser._id
+        };
 
-        let parsedData = [];
+        await studentGradeService.save(gradeData);
 
-        Papa.parse(readStream, {
-            header: true,
-            step: async function (result) {
-              parsedData.push(result.data);
-
-              const studentId = result.data.studentId;
-              const grade = result.data.grade;
-              const email = result.data.email;
-
-              const checkUser = await userService.findUserByEmail(email);
-
-              if (!checkUser){
-                res.status(400).json({ message: `No student with email: ${email} ` });
-              }
-
-              const gradeData = {
-                  studentId: studentId,
-                  grade: grade,
-                  assignmentId: assignmentId,
-                  userId: checkUser._id
-              };
-
-              await studentGradeService.save(gradeData);
-              
-            },
-            complete: function () {
-                res.json(parsedData);
-            },
-            error: function (error) {
-                return res.status(400).json({ error: "CSV parsing error has occurred" });
-            }
-        });
-    } else {
-      res.status(400).json({ message: `No assignment with id: ${assignmentId} ` });
-    }
+      },
+      complete: function () {
+        res.json(parsedData);
+      },
+      error: function (error) {
+        return res.status(400).json({ error: "CSV parsing error has occurred" });
+      }
+    });
+  } else {
+    res.status(400).json({ message: `No assignment with id: ${assignmentId} ` });
+  }
 };
 
 export const markFinalDecision = async (req, res, next) => {
@@ -131,11 +132,53 @@ export const markFinalDecision = async (req, res, next) => {
   if (assignmentReviewId && expectedGrade) {
     const assignmentReview = await AssignmentReviewModel.findById(assignmentReviewId);
 
-    await AssignmentReviewModel.findByIdAndUpdate({ _id: assignmentReviewId }, {expectedGrade, finalDecision: 1});
+    await AssignmentReviewModel.findByIdAndUpdate({ _id: assignmentReviewId }, { expectedGrade, finalDecision: 1 });
 
     await StudentGradeModel.findByIdAndUpdate({ _id: assignmentReview.studentGradeId }, { grade: expectedGrade });
 
     return res.status(200).json({ message: 'Successfully' });
+  } else {
+    return res.status(400).json({ message: 'Invalid fields' });
+  }
+
+}
+
+export const assignmentReviews = async (req, res, next) => {
+  const classId = req.params.classId;
+
+  if (classId) {
+
+    // find assignment
+    GradeStructureModel.find({ classId }, '_id')
+      .then((gradeStructureIds) => {
+        const ids = gradeStructureIds.map((gradeStructure) => gradeStructure._id);
+
+        return AssignmentModel.find({ gradeStructureId: { $in: ids } }, '_id');
+      }).then((assignmentIds) => {
+        const ids = assignmentIds.map((assignment) => assignment._id);
+
+        return StudentGradeModel.find({ assignmentId: { $in: ids } }, '_id');
+      })
+      .then((studentGradeIds) => {
+        const ids = studentGradeIds.map((sg) => sg._id);
+
+        return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
+        .populate({
+          path: 'studentGradeId',
+          select: 'id grade userId assignmentId',
+          populate: [
+            { path: 'userId', select: 'id name studentId' },
+            { path: 'assignmentId', select: 'id name scale' }
+          ]
+        });
+      })
+      .then((assignmentReviews) => {
+        return res.status(200).json(assignmentReviews);
+      })
+      .catch((err) => {
+        return res.status(400).json({ message: 'Fail' });
+      });
+
   } else {
     return res.status(400).json({ message: 'Invalid fields' });
   }

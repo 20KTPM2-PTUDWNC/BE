@@ -6,11 +6,6 @@ const assignmentReviewSchema = new mongoose.Schema({
         ref: "StudentGrade",
         required: true,
     },
-    classId:{
-        type: mongoose.Types.ObjectId,
-        ref: "Class",
-        required: true,
-    },
     expectedGrade:{
         type: Number,
         default: null
