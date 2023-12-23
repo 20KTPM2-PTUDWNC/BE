@@ -7,6 +7,7 @@ import StudentClassModel from "../models/studentClass.js";
 import Papa from "papaparse";
 import fs from "fs";
 import studentClass from "../models/studentClass.js";
+import NotificationModel from "../models/notification.js";
 
 export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
@@ -245,3 +246,18 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
     });
 }
 
+export const notification = async (req, res, next) => {
+    const userId = req.params.userId;
+
+    const notification = await NotificationModel.find({ receiverId: userId });
+
+    return res.status(200).json(notification);
+}
+
+export const markNotification = async (req, res, next) => {
+    const notificationId = req.params.notificationId;
+
+    await NotificationModel.findByIdAndUpdate(notificationId, { mark: 1});
+
+    return res.status(200).json({ message: 'Successfully' });
+}
