@@ -1,5 +1,5 @@
 import usersService from "../services/users.js";
-import User from "../models/users.js";
+import User, { UserFlag } from "../models/users.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import UserClassModel from "../models/userClass.js";
@@ -7,7 +7,8 @@ import StudentClassModel from "../models/studentClass.js";
 import Papa from "papaparse";
 import fs from "fs";
 import studentClass from "../models/studentClass.js";
-import NotificationModel from "../models/notification.js";
+import NotificationModel, { Description, Title } from "../models/notification.js";
+import StudentIdReviewModel from "../models/studentIdReview.js";
 
 export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
@@ -103,7 +104,7 @@ export const mappingStudentId = async (req, res, next) => {
                 runValidators: true
             });
 
-        await StudentClassModel.updateMany({studentId}, {userId});
+        await StudentClassModel.updateMany({ studentId }, { userId });
 
         let userClass = await UserClassModel.find({ userId });
 
@@ -152,8 +153,8 @@ export const unmappingStudentId = async (req, res, next) => {
             new: true,
             runValidators: true
         });
-    
-    await StudentClassModel.updateMany({userId}, {studentId: null});
+
+    await StudentClassModel.updateMany({ userId }, { studentId: null });
     return res.status(200).json({ message: 'Successfully' });
 }
 
@@ -218,7 +219,7 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
                         await StudentClassModel.bulkWrite(bulkOps);
 
                         if (!sentResponse) {
-                            res.status(200).json({message: 'Mapping student Ids by uploading Excel file successfully'});
+                            res.status(200).json({ message: 'Mapping student Ids by uploading Excel file successfully' });
                             sentResponse = true;
                         }
                     } else {
@@ -249,7 +250,7 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
 export const notification = async (req, res, next) => {
     const userId = req.params.userId;
 
-    const notification = await NotificationModel.find({ receiverId: userId });
+    const notification = await NotificationModel.find({ receiverId: userId }).sort({ "createdAt": -1 });
 
     return res.status(200).json(notification);
 }
@@ -257,7 +258,141 @@ export const notification = async (req, res, next) => {
 export const markNotification = async (req, res, next) => {
     const notificationId = req.params.notificationId;
 
-    await NotificationModel.findByIdAndUpdate(notificationId, { mark: 1});
+    await NotificationModel.findByIdAndUpdate(notificationId, { mark: 1 });
 
     return res.status(200).json({ message: 'Successfully' });
+}
+
+export const reviewStudentId = async (req, res, next) => {
+    const { text, sort, studentId } = req.body;
+
+    if (studentId && text && sort) {
+        await usersService.updateStudentIdReview({ text, sort, userId: req.user._id, studentId });
+
+        // get receiver
+        const user = await User.findById(req.user._id);
+        const student = await User.findById(studentId);
+
+        // notification
+        let notification = {
+            title: Title.StudentId,
+            url: `/user/${req.user._id}`
+        }
+
+        if (user.userFlag === UserFlag.Admin) {
+            notification = {
+                ...notification,
+                description: Description.StudentId,
+                receiverId: studentId
+            }
+
+            await NotificationModel.create(notification);
+        } else {
+            let receiver = await User.find({ userFlag: UserFlag.Admin });
+
+            receiver = receiver.map((d) => ({
+                ...notification,
+                description: Description.Admin(student.name),
+                receiverId: d._doc._id
+            }));
+
+            await NotificationModel.insertMany(receiver);
+        }
+
+        return res.status(200).json({ message: 'Successfully' });
+    }
+
+    return res.status(400).json({ message: 'Fail' });
+}
+
+export const studentIdReviewDetail = async (req, res, next) => {
+    const userId = req.params.userId;
+
+    if (userId) {
+        const studentIdReviews = await StudentIdReviewModel.find({ userId }, { _id: 1, text: 1, sort: 1 }).populate('userId', { _id: 1, name: 1 }).sort({ "sort": 1 });
+
+        return res.status(200).json(studentIdReviews);
+    }
+
+    return res.status(400).json({ message: 'Fail' });
+}
+
+export const studentReviews = async (req, res, next) => {
+    // const result = await StudentIdReviewModel.aggregate([
+    //     {
+    //       $group: {
+    //         _id: '$studentId',
+    //         reviews: { $push: '$$ROOT' }
+    //       }
+    //     },
+    //     {
+    //       $lookup: {
+    //         from: 'users',
+    //         localField: '_id',
+    //         foreignField: '_id',
+    //         as: 'user'
+    //       }
+    //     },
+    //     {
+    //       $unwind: '$user'
+    //     },
+    //     {
+    //       $project: {
+    //         _id: 1,
+    //         reviews: {
+    //           $map: {
+    //             input: '$reviews',
+    //             as: 'review',
+    //             in: {
+    //               text: '$$review.text',
+    //               sort: '$$review.sort'
+    //             }
+    //           }
+    //         },
+    //         user: {
+    //           name: '$user.name',
+    //           studentId: '$user.studentId'
+    //         }
+    //       }
+    //     }
+    //   ]);
+
+    const groupedReviews = await StudentIdReviewModel.aggregate([
+        {
+            $group: {
+                _id: '$studentId',
+                reviews: { $push: '$$ROOT' }
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'user'
+            }
+        },
+        {
+            $unwind: '$user'
+        }
+    ]);
+
+    const populatedReviews = await Promise.all(groupedReviews.map(async (group) => {
+        const userIds = group.reviews.map(review => review.userId);
+        const users = await User.find({ _id: { $in: userIds } }, 'name');
+
+        const populated = await Promise.all(group.reviews.map(async review => {
+            const user = users.find(u => u._id.equals(review.userId));
+            const populatedReview = {
+                text: review.text,
+                sort: review.sort,
+                userId: { _id: user._id, name: user.name }
+            };
+            return populatedReview;
+        }));
+
+        return { user: {name: group.user.name, studentId: group.user.name.studentId}, reviews: populated };
+    }));
+
+    return res.status(400).json(populatedReviews);
 }
