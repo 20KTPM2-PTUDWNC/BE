@@ -3,13 +3,16 @@ import mongoose from 'mongoose';
 export const Title = {
     Grade: 'New grade',
     Review: 'New review',
-    Final: 'Final grade'
+    Final: 'Final grade',
+    StudentId: 'New about mapping studentId'
 }
 
 export const Description = {
     Grade: (params) => `You just got the score for the assignment ${params}`,
     Review: (params) => `You have a review of the assignment ${params}`,
     Final: (params) => `Your teacher makes the final decision on the ${params} assignment grade`,
+    StudentId: 'You have a new message about mapping your studentId',
+    Admin: (params) => `You have a new message about mapping studentId of user ${params}`
 }
 
 export const Url = {
