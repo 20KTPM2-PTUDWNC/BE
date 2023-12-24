@@ -7,6 +7,7 @@ import AssignmentModel from "../models/assignment.js";
 import StudentGradeModel from "../models/studentGrade.js";
 import NotificationModel, { Description, Title } from "../models/notification.js";
 import UsersModel from "../models/users.js";
+import UserClassModel from "../models/userClass.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -275,4 +276,58 @@ export const showGradeById = async (req, res, next) => {
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+export const showStudentGradeByTeacher = async (req, res, next) => {
+    try {
+        const classId = req.params.classId;
+
+        // Lấy danh sách sinh viên trong lớp, bao gồm cả tên và mã số sinh viên của học sinh
+        const studentsInClass = await UserClassModel.find({ classId, userRole: 0 })
+            .populate('userId', '_id name studentId'); // Thêm studentId để lấy thông tin mã số sinh viên (nếu có)
+
+        const userIdList = studentsInClass.map((userClass) => userClass.userId);
+
+        // Lấy điểm số của sinh viên trong các bài tập
+        const studentGrades = await StudentGradeModel.find({ userId: { $in: userIdList } })
+            .populate('userId', '_id name studentId') // Điều chỉnh trường để phù hợp với User model
+            .populate('assignmentId', 'name grade') // Điều chỉnh các trường để phù hợp với Assigment model
+            .select('studentId userId assignmentId grade');
+
+        // Tổ chức dữ liệu theo cấu trúc mới
+        const studentInfoList = [];
+
+        // Lặp qua danh sách sinh viên
+        for (const student of studentsInClass) {
+            const studentInfo = {
+                userId: {
+                    _id: student.userId._id,
+                    name: student.userId.name,
+                    studentId: student.userId.studentId || null, // Kiểm tra và hiển thị mã số sinh viên (nếu có)
+                },
+                assignments: [],
+            };
+
+            // Lặp qua danh sách điểm số để lấy thông tin về bài tập và điểm số của sinh viên
+            for (const studentGrade of studentGrades) {
+                if (studentGrade.userId._id.toString() === student.userId._id.toString()) {
+                    studentInfo.assignments.push({
+                        name: studentGrade.assignmentId.name,
+                        grade: studentGrade.grade,
+                    });
+                }
+            }
+
+            studentInfoList.push(studentInfo);
+        }
+
+        // Trả về dữ liệu theo cấu trúc mới
+        return res.status(200).json(studentInfoList);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+
 
