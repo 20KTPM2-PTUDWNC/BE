@@ -318,45 +318,6 @@ export const studentIdReviewDetail = async (req, res, next) => {
 }
 
 export const studentReviews = async (req, res, next) => {
-    // const result = await StudentIdReviewModel.aggregate([
-    //     {
-    //       $group: {
-    //         _id: '$studentId',
-    //         reviews: { $push: '$$ROOT' }
-    //       }
-    //     },
-    //     {
-    //       $lookup: {
-    //         from: 'users',
-    //         localField: '_id',
-    //         foreignField: '_id',
-    //         as: 'user'
-    //       }
-    //     },
-    //     {
-    //       $unwind: '$user'
-    //     },
-    //     {
-    //       $project: {
-    //         _id: 1,
-    //         reviews: {
-    //           $map: {
-    //             input: '$reviews',
-    //             as: 'review',
-    //             in: {
-    //               text: '$$review.text',
-    //               sort: '$$review.sort'
-    //             }
-    //           }
-    //         },
-    //         user: {
-    //           name: '$user.name',
-    //           studentId: '$user.studentId'
-    //         }
-    //       }
-    //     }
-    //   ]);
-
     const groupedReviews = await StudentIdReviewModel.aggregate([
         {
             $group: {
@@ -391,7 +352,7 @@ export const studentReviews = async (req, res, next) => {
             return populatedReview;
         }));
 
-        return { user: {name: group.user.name, studentId: group.user.name.studentId}, reviews: populated };
+        return { user: { _id: group.user._id, name: group.user.name, studentId: group.user.name.studentId}, reviews: populated };
     }));
 
     return res.status(400).json(populatedReviews);

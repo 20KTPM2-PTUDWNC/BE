@@ -10,6 +10,7 @@ import userService from "../services/users.js";
 import GradeStructureModel from "../models/grade.js";
 import { Description, Title } from "../models/notification.js";
 import NotificationModel from "../models/notification.js";
+import UserClassModel, { UserRole } from "../models/userClass.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
@@ -70,18 +71,42 @@ export const reviewAssignment = async (req, res, next) => {
     const assignment = await StudentGradeModel.findOne({ _id: studentGradeId })
       .populate([
         { path: 'userId', select: 'id studentId' },
-        { path: 'assignmentId', select: 'id name' }
+        {
+          path: 'assignmentId', select: 'id name',
+          populate: [
+            { path: 'gradeStructureId', select: 'classId' }
+          ]
+        }
       ]);
 
+    const userClass = await UserClassModel.findOne({ userId: userReview[0].userId, classId: assignment._doc.assignmentId._doc.gradeStructureId._doc.classId });
+
     // notification
-    const notification = {
+    let notification = {
       title: Title.Review,
       description: Description.Review(assignment._doc.assignmentId._doc.name),
-      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`,
-      receiverId: assignment._doc.userId._doc._id
+      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`
     }
 
-    await NotificationModel.create(notification);
+    // student => teacher
+    if (userClass.userRole === UserRole.Student) {
+      // find teacher
+      let teachers = await UserClassModel.find({ userRole: UserRole.Teacher, classId: assignment._doc.assignmentId._doc.gradeStructureId._doc.classId });
+
+      teachers = teachers.map((d) => ({
+        ...notification,
+        receiverId: d._doc._id
+      }));
+
+      await NotificationModel.insertMany(teachers);
+    } else {
+      notification = {
+        ...notification,
+        receiverId: assignment._doc.userId._doc._id
+      }
+
+      await NotificationModel.create(notification);
+    }
 
     return res.status(200).json({ message: 'Successfully' });
   }
