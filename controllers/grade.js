@@ -290,7 +290,7 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
         // Lấy điểm số của sinh viên trong các bài tập
         const studentGrades = await StudentGradeModel.find({ userId: { $in: userIdList } })
             .populate('userId', '_id name studentId') // Điều chỉnh trường để phù hợp với User model
-            .populate('assignmentId', 'name grade') // Điều chỉnh các trường để phù hợp với Assigment model
+            .populate('assignmentId', 'name grade scale') // Điều chỉnh các trường để phù hợp với Assigment model
             .select('studentId userId assignmentId grade');
 
         // Tổ chức dữ liệu theo cấu trúc mới
@@ -305,15 +305,20 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
                     studentId: student.userId.studentId || null, // Kiểm tra và hiển thị mã số sinh viên (nếu có)
                 },
                 assignments: [],
+                total: 0, // Tổng điểm của sinh viên
             };
 
             // Lặp qua danh sách điểm số để lấy thông tin về bài tập và điểm số của sinh viên
             for (const studentGrade of studentGrades) {
                 if (studentGrade.userId._id.toString() === student.userId._id.toString()) {
+                    const assignmentScale = studentGrade.assignmentId.scale || 1; // Lấy scale của assignment (nếu có, mặc định là 1)
+                    const weightedGrade = studentGrade.grade * ( assignmentScale / 100 ); // Tính điểm nhân với scale
                     studentInfo.assignments.push({
                         name: studentGrade.assignmentId.name,
-                        grade: studentGrade.grade,
+                        grade: weightedGrade,
+                        scale: assignmentScale,
                     });
+                    studentInfo.total += weightedGrade; // Cộng điểm vào tổng
                 }
             }
 
@@ -327,6 +332,7 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
 
 
 
