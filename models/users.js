@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const UserFlag = {
+export const UserFlag = {
     Admin: 0,
     User: 1
 }

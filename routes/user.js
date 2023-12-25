@@ -37,4 +37,10 @@ userRoute.get('/notification/:userId', passport.authenticate('jwt', {session: fa
 
 userRoute.put('/notification/:notificationId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.markNotification));
 
+userRoute.post('/reviewStudentId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.reviewStudentId));
+
+userRoute.get('/studentIdReviewDetail/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.studentIdReviewDetail));
+
+userRoute.get('/studentReview/all', passport.authenticate('jwt', {session: false}), nextWrapper(userController.studentReviews));
+
 export default userRoute;

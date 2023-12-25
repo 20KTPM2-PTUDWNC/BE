@@ -1,4 +1,5 @@
 import UsersModel from "../models/users.js";
+import StudentIdReviewModel from "../models/studentIdReview.js";
 
 export default {
   save: async (userEncrypt) => {
@@ -33,10 +34,13 @@ export default {
   isStudentIdMapped: async (studentId, userId) => {
     const user = await UsersModel.findOne({ studentId });
 
-    if(user) {
-      return user.id === userId? true : false;
+    if (user) {
+      return user.id === userId ? true : false;
     }
 
     return true;
-  }
+  },
+  updateStudentIdReview: async (data) => {
+    return await StudentIdReviewModel.create(data);
+  },
 }
