@@ -261,7 +261,7 @@ export const exportGradeBoard = async (req, res, next) => {
 };
 
 export const showGradeById = async (req, res, next) => {
-    const userId = req.user._id;
+    const userId = req.params.userId;
     try {
         const studentGrades = await StudentGradeModel.find({ userId: userId });
 
