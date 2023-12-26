@@ -14,6 +14,10 @@ const assignmentSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         require: true,
         ref: "Grade"
+    },
+    content:{
+        type: String, 
+        require: true
     }
 },
     { timestamps: true });

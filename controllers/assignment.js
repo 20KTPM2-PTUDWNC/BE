@@ -14,9 +14,9 @@ import UserClassModel, { UserRole } from "../models/userClass.js";
 
 export const addAssignment = async (req, res, next) => {
   const gradeStructureId = req.params.gradeStructureId;
-  const { name, scale } = req.body;
+  const { name, scale, content } = req.body;
 
-  if (!name || !scale) {
+  if (!name || !scale || !content) {
     return res.status(400).json({ message: 'Invalid Grade Structure' });
   }
 
@@ -36,6 +36,7 @@ export const addAssignment = async (req, res, next) => {
     const newAssignment = {
       name: name,
       scale: scale,
+      content: content,
       gradeStructureId: gradeStructureId
     };
 
