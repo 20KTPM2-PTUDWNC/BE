@@ -17,12 +17,26 @@ export const addGradeComposition = async (req, res, next) => {
         return res.status(400).json({ message: 'Invalid Grade Structure' });
     }
 
-    const _class = await classesService.findClassById(classId);
+    try {
+        const _class = await classesService.findClassById(classId);
 
-    if (_class) {
+        if (!_class) {
+            return res.status(400).json({ message: `No class with id: ${classId}` });
+        }
+
         const listGrade = await GradeModel.find({ classId: classId });
         const countGrade = listGrade.length;
+
+        // Kiểm tra tổng gradeScale
+        const totalGradeScale = listGrade.reduce((total, grade) => total + grade.gradeScale, 0);
+        const proposedTotal = totalGradeScale + gradeScale;
+
+        if (proposedTotal > 100) {
+            return res.status(400).json({ message: 'Total gradeScale exceeds 100%' });
+        }
+
         const position = countGrade + 1;
+
         // Create the new grade structure object
         const newGradeComposition = {
             name: name,
@@ -35,10 +49,12 @@ export const addGradeComposition = async (req, res, next) => {
         await gradeService.save(newGradeComposition);
 
         return res.status(200).json({ message: "Grade structure added successfully" });
-    } else {
-        res.status(400).json({ message: `No class with id: ${classId}` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
+
 
 export const showGradeStructure = async (req, res, next) => {
     const classId = req.params.classId;
