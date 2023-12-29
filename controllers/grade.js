@@ -97,7 +97,7 @@ export const deleteGradeComposition = async (req, res, next) => {
 
     if (gradeComposition) {
         await GradeModel.findByIdAndDelete({ _id: gradeCompositionId, classId: classId });
-        return res.status(400).json({ message: `Delete grade composition with id: ${gradeCompositionId} successfully` });
+        return res.status(200).json({ message: `Delete grade composition with id: ${gradeCompositionId} successfully` });
     }
     else {
         return res.status(400).json({ message: `No grade composition with id: ${gradeCompositionId}` });
