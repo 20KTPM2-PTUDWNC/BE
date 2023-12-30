@@ -158,7 +158,7 @@ export const acceptInvitation = async (req, res, next) => {
 
         const data = {
             classId: tokenEncrypt.classId,
-            role: tokenEncrypt.role,
+            userRole: tokenEncrypt.role,
             userId
         }
 
