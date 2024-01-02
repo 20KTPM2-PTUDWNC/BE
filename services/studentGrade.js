@@ -2,6 +2,7 @@ import AssignmentReviewModel from "../models/assignmentReview.js";
 import UserReviewModel from "../models/userReview.js";
 import StudentGradeModel from "../models/studentGrade.js";
 import UserClassModel, { UserRole } from "../models/userClass.js";
+import UsersModel from "../models/users.js";
 import * as _ from 'lodash';
 
 export default {
@@ -20,16 +21,8 @@ export default {
   updateStudentGrade: async (data) => {
     return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, studentId: data.studentId }, data, { upsert: true, new: true });
   },
-  findStudentGrade: async (assignmentId, user) => {
-    const userClass = await UserClassModel.findOne({ userId: user._id });
-
-    let conditions = { assignmentId, studentId: user.studentId };
-
-    if (userClass.userRole === UserRole.Student) {
-      conditions = { ...conditions, mark: 1 };
-    }
-
-    const studentGrade = await StudentGradeModel.findOne({ assignmentId, studentId: user.studentId });
+  findStudentGrade: async (assignmentId, userId) => {
+    const studentGrade = await StudentGradeModel.findOne({ assignmentId, userId });
 
     if (studentGrade) {
       const assignmentReview = await AssignmentReviewModel.findOne({ studentGradeId: studentGrade.id });
