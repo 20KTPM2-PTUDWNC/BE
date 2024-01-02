@@ -201,6 +201,7 @@ export const studentGrade = async (req, res, next) => {
 
 export const getStudentGrade = async (req, res, next) => {
     const assignmentId = req.params.assignmentId;
+    const userId = req.params.userId;
 
     if (!assignmentId) {
         res.status(400).json({ message: 'Invalid fields' });
@@ -209,7 +210,7 @@ export const getStudentGrade = async (req, res, next) => {
     const assignment = await AssignmentModel.findById(assignmentId);
 
     if (assignment) {
-        const studentGrade = await studentGradeService.findStudentGrade(assignmentId, req.user);
+        const studentGrade = await studentGradeService.findStudentGrade(assignmentId, userId);
         return res.status(200).json(studentGrade);
     }
     res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
