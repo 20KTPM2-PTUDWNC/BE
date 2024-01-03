@@ -14,5 +14,8 @@ export default {
         classId: classId,
       });
       return existingStudent;
+    },
+    updateStudentClass: async (data) => {
+      return await StudentClassModel.findOneAndUpdate({ classId: data.classId, studentId: data.studentId }, data, { upsert: true, new: true });
     }
   }
