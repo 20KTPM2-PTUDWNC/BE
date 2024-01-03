@@ -102,13 +102,6 @@ export const invitationByEmail = async (req, res, next) => {
         // Kiểm tra đã join class
         const user = await usersService.findUserByEmail(email);
 
-        if (user) {
-            const check = await userClassService.checkStudentInClass(classId, user.id);
-            if (check) {
-                return res.status(422).json({ message: `User was in class ${classId}` })
-            }
-        }
-
         const invitation = {
             classId,
             email,
@@ -117,7 +110,27 @@ export const invitationByEmail = async (req, res, next) => {
 
         const accessToken = jwt.sign(JSON.stringify(invitation), process.env.SECRET_KEY);
 
-        const link = `${process.env.FRONTEND_DOMAIN}/#/acceptInvitation/${accessToken}`;
+        let link = `${process.env.FRONTEND_DOMAIN}/#/signup/${accessToken}`;
+
+        if (user) {
+            const check = await userClassService.checkStudentInClass(classId, user.id);
+            if (check) {
+                return res.status(422).json({ message: `User was in class ${classId}` })
+            }
+
+            link = `${process.env.FRONTEND_DOMAIN}/#/class/${classId}`;
+
+            await userClassService.save({ userId: user.id, classId: _class.id, role});
+
+            // studentClass
+            const studentClass = {
+                classId,
+                studentId: user.studentId,
+                userId: user.id,
+                name: user.name
+            }
+            await studentClassService.updateStudentClass(studentClass);
+        }
 
         const mailOptions = {
             from: process.env.MAILER_USER,
@@ -149,22 +162,37 @@ export const acceptInvitation = async (req, res, next) => {
 
     const _class = await classesService.findClassById(tokenEncrypt.classId);
 
-    if (_class) {
+    if (_class && _class.status == 0) {
 
-        const check = await userClassService.checkStudentInClass(_class.id, userId);
-        if (check) {
-            return res.status(422).json({ message: `User was in class ${_class.id}` })
+        const user = await usersService.findUserById(userId);
+
+        if (user) {
+            const check = await userClassService.checkStudentInClass(_class.id, userId);
+            if (check) {
+                return res.status(422).json({ message: `User was in class ${_class.id}` })
+            }
+
+            const data = {
+                classId: tokenEncrypt.classId,
+                userRole: tokenEncrypt.role,
+                userId
+            }
+
+            const userClass = await userClassService.save(data);
+
+            // studentClass
+            const studentClass = {
+                classId,
+                studentId: user.studentId,
+                userId,
+                name: user.name
+            }
+            await studentClassService.updateStudentClass(studentClass);
+
+            return res.status(200).json({ id: userClass.id });
+        } else {
+            return res.status(400).json({ message: `No user with id: ${userId} ` });
         }
-
-        const data = {
-            classId: tokenEncrypt.classId,
-            userRole: tokenEncrypt.role,
-            userId
-        }
-
-        const userClass = await userClassService.save(data);
-
-        return res.status(200).json({ id: userClass.id });
     }
     else {
         return res.status(400).json({ message: `No class with id: ${classId} ` });
@@ -180,19 +208,34 @@ export const joinClass = async (req, res, next) => {
 
     const _class = await classesService.findClassByCode(code);
 
-    if (_class) {
+    if (_class && _class.status == 0) {
 
-        const check = await userClassService.checkStudentInClass(_class.id, userId);
-        if (check) {
-            return res.status(422).json({ message: `User was in class ${_class.id}` })
+        const user = await usersService.findUserById(userId);
+
+        if (user) {
+            const check = await userClassService.checkStudentInClass(_class.id, userId);
+            if (check) {
+                return res.status(422).json({ message: `User was in class ${_class.id}` })
+            }
+
+            const userClass = await userClassService.save({ userId, classId: _class.id, role: 0 });
+
+            // studentClass
+            const studentClass = {
+                classId: _class.id,
+                studentId: user.studentId,
+                userId,
+                name: user.name
+            }
+            await studentClassService.updateStudentClass(studentClass);
+
+            return res.status(200).json({ id: userClass.id });
+        } else {
+            return res.status(400).json({ message: `No user with id: ${userId} ` });
         }
-
-        const userClass = await userClassService.save({ userId, classId: _class.id, role: 0 });
-
-        return res.status(200).json({ id: userClass.id });
     }
     else {
-        return res.status(400).json({ message: `No class with id: ${classId} ` });
+        return res.status(400).json({ message: `No class with code: ${code} ` });
     }
 }
 
@@ -223,39 +266,39 @@ export const uploadStudentList = async (req, res) => {
         const filePath = req.file.path;
 
         if (!fs.existsSync(filePath)) {
-        return res.status(400).json({ error: "File not found" });
+            return res.status(400).json({ error: "File not found" });
         }
 
         const readStream = fs.createReadStream(filePath);
         readStream.on('error', (err) => {
-        return res.status(500).json({ error: "Error reading the file" });
+            return res.status(500).json({ error: "Error reading the file" });
         });
 
         let parsedData = [];
 
         Papa.parse(readStream, {
-        header: true,
-        step: async function (result) {
-            parsedData.push(result.data);
+            header: true,
+            step: async function (result) {
+                parsedData.push(result.data);
 
-            const existingStudent = await studentClassService.findByStudentIdAndClassId(result.data.studentId, classId)
+                const existingStudent = await studentClassService.findByStudentIdAndClassId(result.data.studentId, classId)
 
-            if (!existingStudent) {
-                const studentData = {
-                studentId: result.data.studentId,
-                name: result.data.name,
-                classId: classId, // Associate the student with the class
-                };
+                if (!existingStudent) {
+                    const studentData = {
+                        studentId: result.data.studentId,
+                        name: result.data.name,
+                        classId: classId, // Associate the student with the class
+                    };
 
-                await studentClassService.save(studentData);
+                    await studentClassService.save(studentData);
+                }
+            },
+            complete: function () {
+                res.json(parsedData);
+            },
+            error: function (error) {
+                return res.status(400).json({ error: "CSV parsing error has occurred" });
             }
-        },
-        complete: function () {
-            res.json(parsedData);
-        },
-        error: function (error) {
-            return res.status(400).json({ error: "CSV parsing error has occurred" });
-        }
         });
     } else {
         res.status(400).json({ message: `No class with id: ${classId} ` });
