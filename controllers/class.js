@@ -120,16 +120,18 @@ export const invitationByEmail = async (req, res, next) => {
 
             link = `${process.env.FRONTEND_DOMAIN}/#/class/${classId}`;
 
-            await userClassService.save({ userId: user.id, classId: _class.id, role});
+            await userClassService.save({ userId: user.id, classId: _class.id, userRole: role });
 
-            // studentClass
-            const studentClass = {
-                classId,
-                studentId: user.studentId,
-                userId: user.id,
-                name: user.name
+            if (role == 0) {
+                // studentClass
+                const studentClass = {
+                    classId,
+                    studentId: user.studentId,
+                    userId: user.id,
+                    name: user.name
+                }
+                await studentClassService.updateStudentClass(studentClass);
             }
-            await studentClassService.updateStudentClass(studentClass);
         }
 
         const mailOptions = {
@@ -181,13 +183,15 @@ export const acceptInvitation = async (req, res, next) => {
             const userClass = await userClassService.save(data);
 
             // studentClass
-            const studentClass = {
-                classId,
-                studentId: user.studentId,
-                userId,
-                name: user.name
+            if (tokenEncrypt.role == 0) {
+                const studentClass = {
+                    classId,
+                    studentId: user.studentId,
+                    userId,
+                    name: user.name
+                }
+                await studentClassService.updateStudentClass(studentClass);
             }
-            await studentClassService.updateStudentClass(studentClass);
 
             return res.status(200).json({ id: userClass.id });
         } else {
