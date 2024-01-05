@@ -59,7 +59,7 @@ export const signIn = async (req, res, next) => {
       const match = await bcrypt.compare(password, userExists.password);
       if (!match) return res.status(400).json({ message: `Invalid email or password` })
 
-      userExists.password = null;
+      const userWithToken = { ...userExists, password: userExists.password };
 
       const accessToken = jwt.sign(JSON.stringify(userExists), process.env.SECRET_KEY);
       return res
@@ -67,7 +67,7 @@ export const signIn = async (req, res, next) => {
           httpOnly: true
         })
         .status(200)
-        .json({ token: accessToken });
+        .json({ user: userWithToken, token: accessToken });
     } else {
       return res.status(400).json({ message: 'You need login with Google or Facebook' });
     }
