@@ -305,4 +305,15 @@ export const uploadStudentList = async (req, res) => {
     }
 };
 
+export const showStudentList = async (req, res, next) => {
+    const classId = req.params.classId;
+    const _class = await studentClassService.findAllStudentInClass(classId);
+
+    if (_class) {
+        return res.status(200).json(_class);
+    }
+    else {
+        res.status(400).json({ message: `No class with id: ${classId} ` });
+    }
+}
 
