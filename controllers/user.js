@@ -9,6 +9,7 @@ import fs from "fs";
 import studentClass from "../models/studentClass.js";
 import NotificationModel, { Description, Title } from "../models/notification.js";
 import StudentIdReviewModel from "../models/studentIdReview.js";
+import StudentGradeModel from "../models/studentGrade.js";
 
 export const getUserProfile = async (req, res, next) => {
     const userId = req.params.id;
@@ -125,6 +126,8 @@ export const mappingStudentId = async (req, res, next) => {
 
         await StudentClassModel.bulkWrite(bulkOps);
 
+        await StudentGradeModel.updateMany({ userId }, { studentId });
+
         return res.status(200).json(userUpdate);
     } else {
         return res.status(400).json({ message: `Existed student mapped with studentId: ${studentId} ` });
@@ -155,6 +158,7 @@ export const unmappingStudentId = async (req, res, next) => {
         });
 
     await StudentClassModel.updateMany({ userId }, { studentId: null });
+    await StudentGradeModel.updateMany({ userId }, { studentId: null });
     return res.status(200).json({ message: 'Successfully' });
 }
 
