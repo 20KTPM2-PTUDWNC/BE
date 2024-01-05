@@ -13,7 +13,7 @@ const studentGradeSchema = new mongoose.Schema({
     },
     studentId: {
         type: Number,
-        required: true
+        default: null
     },
     assignmentId:{
         type: mongoose.Types.ObjectId,
@@ -21,7 +21,8 @@ const studentGradeSchema = new mongoose.Schema({
     },
     userId: {
         type: mongoose.Types.ObjectId,
-        ref: "Users"
+        ref: "Users",
+        default: null
     },
     grade: {
         type: Number,
