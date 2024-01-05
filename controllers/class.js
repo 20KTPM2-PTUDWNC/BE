@@ -185,7 +185,7 @@ export const acceptInvitation = async (req, res, next) => {
             // studentClass
             if (tokenEncrypt.role == 0) {
                 const studentClass = {
-                    classId,
+                    classId: tokenEncrypt.classId,
                     studentId: user.studentId,
                     userId,
                     name: user.name
@@ -199,7 +199,7 @@ export const acceptInvitation = async (req, res, next) => {
         }
     }
     else {
-        return res.status(400).json({ message: `No class with id: ${classId} ` });
+        return res.status(400).json({ message: `No class with id: ${tokenEncrypt.classId} ` });
     }
 }
 
