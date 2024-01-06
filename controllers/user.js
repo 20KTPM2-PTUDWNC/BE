@@ -221,6 +221,7 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
                         }));
 
                         await StudentClassModel.bulkWrite(bulkOps);
+                        await StudentGradeModel.updateMany({ userId }, { studentId });
 
                         if (!sentResponse) {
                             res.status(200).json({ message: 'Mapping student Ids by uploading Excel file successfully' });
