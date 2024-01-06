@@ -86,7 +86,7 @@ export const reviewAssignment = async (req, res, next) => {
     let notification = {
       title: Title.Review,
       description: Description.Review(assignment._doc.assignmentId._doc.name),
-      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`
+      url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`
     }
 
     // student => teacher
@@ -183,14 +183,19 @@ export const markFinalDecision = async (req, res, next) => {
     const assignment = await StudentGradeModel.findOne({ _id: assignmentReview.studentGradeId })
       .populate([
         { path: 'userId', select: 'id studentId' },
-        { path: 'assignmentId', select: 'id name' }
+        {
+          path: 'assignmentId', select: 'id name',
+          populate: [
+            { path: 'gradeStructureId', select: 'classId' }
+          ]
+        }
       ]);
 
     // notification
     const notification = {
       title: Title.Final,
       description: Description.Final(assignment._doc.assignmentId._doc.name),
-      url: `class/assignment/${assignment._doc.assignmentId._doc._id}`,
+      url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`,
       receiverId: assignment._doc.userId._doc._id
     }
 
