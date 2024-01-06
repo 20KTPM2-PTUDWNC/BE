@@ -177,7 +177,7 @@ export const studentGrade = async (req, res, next) => {
 
     const user = await UsersModel.findById(userId);
 
-    const assignment = await AssignmentModel.findById(assignmentId);
+    const assignment = await AssignmentModel.findById(assignmentId).populate({ path: 'gradeStructureId', select: 'classId' });
 
     if (user && assignment) {
         const studentGrade = await studentGradeService.updateStudentGrade({ assignmentId, userId: userId, studentId: user.studentId, grade, mark });
@@ -186,7 +186,7 @@ export const studentGrade = async (req, res, next) => {
         const notification = {
             title: Title.Grade,
             description: Description.Grade(assignment.name),
-            url: `class/assignment/${assignmentId}`,
+            url: `class/${assignment._doc.gradeStructureId._doc.classId}/${assignmentId}`,
             receiverId: userId
         }
 
