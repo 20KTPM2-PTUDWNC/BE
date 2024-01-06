@@ -43,4 +43,7 @@ export default {
   updateStudentIdReview: async (data) => {
     return await StudentIdReviewModel.create(data);
   },
+  findUserByStudentId: async (studentId) => {
+    return await UsersModel.findOne({ studentId });
+  },
 }
