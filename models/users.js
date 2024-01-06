@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const UserFlag = {
+export const UserFlag = {
     Admin: 0,
     User: 1
 }
@@ -18,7 +18,7 @@ const usersSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        default: null
     },
     phone: {
         type: String
@@ -46,7 +46,18 @@ const usersSchema = new mongoose.Schema({
     },
     avatar:{
         type: String
-    }
+    },
+    typeLogin:{
+        type: String
+    },
+    verified: {
+        type: Boolean,
+        default: false
+    },
+    studentId: {
+        type: Number,
+        default: null,
+    },
 },
     { timestamps: true });
 

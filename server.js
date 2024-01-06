@@ -6,23 +6,39 @@ import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import route from './routes/index.js';
 import notFound from './middlewares/notFoundHandler.js';
+import passport from 'passport';
+import './config/passport.js';
 
 const app = express()
 
 // Setup
 const PORT = process.env.SERVER_PORT || 8080;
 
-// middlewares
-app.use(cors({
-    origin: 'https://classroom-awp.netlify.app',
-    methods: 'POST, GET, PUT, DELETE',
-    allowedHeaders: 'Content-Type',
+const options = {
+    origin: process.env.FRONTEND_DOMAIN,
+    allowedHeaders: [
+        'Origin',
+        'X-Requested-With',
+        'Content-Type',
+        'Accept',
+        'X-Access-Token',
+        'Authorization',
+    ],
     credentials: true,
-  }));
+    methods: ['GET', 'HEAD', 'OPTIONS', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    exposedHeaders: ['X-Total-Count'],
+};
+
+app.use(cors(options));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+app.use(passport.initialize());
 
 app.use('/v1', route);
 
