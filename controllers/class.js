@@ -8,7 +8,8 @@ import ClassModel from "../models/class.js";
 import Papa from "papaparse";
 import fs from "fs";
 import studentClassService from "../services/studentClass.js";
-import UserModel from "../models/users.js";
+import StudentGradeModel from "../models/studentGrade.js";
+import _ from "lodash";
 
 export const createClass = async (req, res, next) => {
     const { name, subject } = req.body;
@@ -332,4 +333,35 @@ export const showStudentList = async (req, res, next) => {
         res.status(400).json({ message: `No class with id: ${classId} ` });
     }
 }
+
+export const studentNoGrade = async (req, res, next) => {
+    try {
+        const classId = req.params.classId;
+        const assignmentId = req.params.assignmentId;
+
+        const _class = await classesService.findClassById(classId);
+
+        if (!_class) {
+            return res.status(400).json({ message: `No class with id: ${classId}` });
+        }
+
+        const studentListInClass = await userClassModel.find({ classId, userRole: 0 });
+
+        const gradesForAssignment = await StudentGradeModel.find({ assignmentId: assignmentId });
+
+        const gradedStudentIds = gradesForAssignment.map(student => student.userId.toString());
+        
+        const studentsWithoutGrade = studentListInClass.filter(student => !gradedStudentIds.includes(student.userId.toString()));
+
+        res.status(200).json({
+            studentListInClass: studentListInClass,
+            gradedStudentIds: gradedStudentIds,
+            studentsWithoutGrade: studentsWithoutGrade
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 
