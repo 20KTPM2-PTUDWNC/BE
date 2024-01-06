@@ -158,7 +158,7 @@ export const uploadGradeList = async (req, res) => {
 
       },
       complete: function () {
-        res.json(parsedData);
+        return res.status(200).json({ message: 'Uploading grade list successfully' });
       },
       error: function (error) {
         return res.status(400).json({ error: "CSV parsing error has occurred" });

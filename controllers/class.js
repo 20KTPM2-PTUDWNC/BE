@@ -8,6 +8,7 @@ import ClassModel from "../models/class.js";
 import Papa from "papaparse";
 import fs from "fs";
 import studentClassService from "../services/studentClass.js";
+import UserModel from "../models/users.js";
 
 export const createClass = async (req, res, next) => {
     const { name, subject } = req.body;
@@ -285,20 +286,31 @@ export const uploadStudentList = async (req, res) => {
             step: async function (result) {
                 parsedData.push(result.data);
 
-                const existingStudent = await studentClassService.findByStudentIdAndClassId(result.data.studentId, classId)
+                const studentId = result.data.studentId;
+                const name = result.data.name;
 
+                const existingStudent = await studentClassService.findByStudentIdAndClassId(studentId, classId)
                 if (!existingStudent) {
                     const studentData = {
-                        studentId: result.data.studentId,
-                        name: result.data.name,
+                        studentId: studentId,
+                        name: name,
                         classId: classId, // Associate the student with the class
                     };
-
                     await studentClassService.save(studentData);
+                }
+
+                const checkUserExist = await usersService.findUserByStudentId(studentId);
+                console.log(checkUserExist);
+                if (checkUserExist){
+                    const checkUserClassExist = await userClassService.checkStudentInClass(classId, checkUserExist._id);
+                    if (!checkUserClassExist){
+                        const data = { userId: checkUserExist._id, classId: classId, userRole: 1 };
+                        await userClassService.save(data);
+                    }
                 }
             },
             complete: function () {
-                res.json(parsedData);
+                return res.status(200).json({ message: 'Uploading student list successfully' });
             },
             error: function (error) {
                 return res.status(400).json({ error: "CSV parsing error has occurred" });
