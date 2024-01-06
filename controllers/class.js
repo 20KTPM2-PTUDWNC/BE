@@ -353,10 +353,15 @@ export const studentNoGrade = async (req, res, next) => {
         
         const studentsWithoutGrade = studentListInClass.filter(student => !gradedStudentIds.includes(student.userId.toString()));
 
+        const studentsWithStudentId = await Promise.all(studentsWithoutGrade.map(async student => {
+            const _student = await usersService.findUserById(student.userId);
+            return { ...student.toObject(), studentId: _student.studentId };
+        }));
+        
         res.status(200).json({
             studentListInClass: studentListInClass,
             gradedStudentIds: gradedStudentIds,
-            studentsWithoutGrade: studentsWithoutGrade
+            studentsWithoutGrade: studentsWithStudentId
         });
     } catch (error) {
         console.error(error);
