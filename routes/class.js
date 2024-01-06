@@ -39,4 +39,6 @@ classRoute.post('/uploadStudentList/:classId', upload.single("file"), passport.a
 
 classRoute.get('/showStudentList/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(classController.showStudentList));
 
+classRoute.get('/:classId/studentNoGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(classController.studentNoGrade));
+
 export default classRoute;
