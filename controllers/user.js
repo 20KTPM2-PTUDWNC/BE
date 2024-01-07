@@ -289,7 +289,8 @@ export const reviewStudentId = async (req, res, next) => {
             notification = {
                 ...notification,
                 description: Description.StudentId,
-                receiverId: studentId
+                receiverId: studentId,
+                url: `/admin/CSKH/${studentId}`
             }
 
             await NotificationModel.create(notification);
