@@ -14,7 +14,7 @@ export default {
     return user;
   },
   findAllUsers: async () => {
-    return await UsersModel.find();
+    return await UsersModel.find({userFlag: 1});
   },
   findOrCreate: async (data) => {
     const email = data.emails[0].value;
