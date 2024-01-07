@@ -315,7 +315,7 @@ export const studentIdReviewDetail = async (req, res, next) => {
     const userId = req.params.userId;
 
     if (userId) {
-        const studentIdReviews = await StudentIdReviewModel.find({ userId }, { _id: 1, text: 1, sort: 1 }).populate('userId', { _id: 1, name: 1 }).sort({ "sort": 1 });
+        const studentIdReviews = await StudentIdReviewModel.find({ studentId: userId }, { _id: 1, text: 1, sort: 1 }).populate('userId', { _id: 1, name: 1 }).sort({ "sort": 1 });
 
         return res.status(200).json(studentIdReviews);
     }
