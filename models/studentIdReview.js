@@ -16,7 +16,7 @@ const studentIdReviewSchema = new mongoose.Schema({
         default: null
     },
     sort: {
-        type: String,
+        type: Number,
         default: null
     },
     createdAt: {
