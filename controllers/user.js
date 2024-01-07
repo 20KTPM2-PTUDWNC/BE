@@ -289,7 +289,7 @@ export const reviewStudentId = async (req, res, next) => {
                 ...notification,
                 description: Description.StudentId,
                 receiverId: studentId,
-                url: `admin/CSKH/${studentId}`
+                url: `user/${userId}`
             }
 
             await NotificationModel.create(notification);
@@ -300,7 +300,7 @@ export const reviewStudentId = async (req, res, next) => {
                 ...notification,
                 description: Description.Admin(student.name),
                 receiverId: d._doc._id,
-                url: `user/${userId}`
+                url: `admin/CSKH/${studentId}`
             }));
 
             await NotificationModel.insertMany(receiver);
