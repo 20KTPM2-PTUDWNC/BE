@@ -191,9 +191,10 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
 
             if (!existingStudent) {
                 const checkStudent = await usersService.findUserByEmail(email);
-                const userId = checkStudent._id;
 
                 if (checkStudent) {
+                    const userId = checkStudent._id;
+
                     if (await usersService.isStudentIdMapped(studentId, userId)) {
                         const userUpdate = await User.findByIdAndUpdate({ _id: userId }, { studentId },
                             {
