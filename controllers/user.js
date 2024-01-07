@@ -281,8 +281,7 @@ export const reviewStudentId = async (req, res, next) => {
 
         // notification
         let notification = {
-            title: Title.StudentId,
-            url: `/user/${userId}`
+            title: Title.StudentId
         }
 
         if (user.userFlag === UserFlag.Admin) {
@@ -290,7 +289,7 @@ export const reviewStudentId = async (req, res, next) => {
                 ...notification,
                 description: Description.StudentId,
                 receiverId: studentId,
-                url: `/admin/CSKH/${studentId}`
+                url: `admin/CSKH/${studentId}`
             }
 
             await NotificationModel.create(notification);
@@ -300,7 +299,8 @@ export const reviewStudentId = async (req, res, next) => {
             receiver = receiver.map((d) => ({
                 ...notification,
                 description: Description.Admin(student.name),
-                receiverId: d._doc._id
+                receiverId: d._doc._id,
+                url: `user/${userId}`
             }));
 
             await NotificationModel.insertMany(receiver);
