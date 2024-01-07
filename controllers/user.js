@@ -270,19 +270,19 @@ export const markNotification = async (req, res, next) => {
 }
 
 export const reviewStudentId = async (req, res, next) => {
-    const { text, sort, studentId } = req.body;
+    const { text, sort, studentId, userId } = req.body;
 
     if (studentId && text && sort) {
-        await usersService.updateStudentIdReview({ text, sort, userId: req.user._id, studentId });
+        await usersService.updateStudentIdReview({ text, sort, userId, studentId });
 
         // get receiver
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(userId);
         const student = await User.findById(studentId);
 
         // notification
         let notification = {
             title: Title.StudentId,
-            url: `/user/${req.user._id}`
+            url: `/user/${userId}`
         }
 
         if (user.userFlag === UserFlag.Admin) {
