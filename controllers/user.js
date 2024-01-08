@@ -150,6 +150,16 @@ export const lockAccount = async (req, res, next) => {
     return res.status(200).json({ message: 'Successfully' });
 }
 
+export const unLockAccount = async (req, res, next) => {
+    const userId = req.params.userId;
+    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: null },
+        {
+            new: true,
+            runValidators: true
+        });
+    return res.status(200).json({ message: 'Successfully' });
+}
+
 export const unmappingStudentId = async (req, res, next) => {
     const userId = req.params.userId;
     await User.findByIdAndUpdate({ _id: userId }, { studentId: null },
