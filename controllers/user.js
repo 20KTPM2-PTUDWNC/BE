@@ -136,7 +136,8 @@ export const mappingStudentId = async (req, res, next) => {
 
 export const getAllUser = async (req, res, next) => {
     const users = await usersService.findAllUsers();
-    return res.status(200).json(users);
+    const filteredUsers = users.filter(user => user.userFlag !== 0);
+    return res.status(200).json(filteredUsers);
 }
 
 export const lockAccount = async (req, res, next) => {

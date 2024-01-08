@@ -349,18 +349,23 @@ export const studentNoGrade = async (req, res, next) => {
 
         const gradesForAssignment = await StudentGradeModel.find({ assignmentId: assignmentId });
 
+        const gradedStudents = await Promise.all(gradesForAssignment.map(async student => {
+            const _student = await usersService.findUserById(student.userId);
+            return { ...student.toObject(), studentId: _student.studentId, name: _student.name };
+        }));
+
         const gradedStudentIds = gradesForAssignment.map(student => student.userId.toString());
         
         const studentsWithoutGrade = studentListInClass.filter(student => !gradedStudentIds.includes(student.userId.toString()));
 
         const studentsWithStudentId = await Promise.all(studentsWithoutGrade.map(async student => {
             const _student = await usersService.findUserById(student.userId);
-            return { ...student.toObject(), studentId: _student.studentId };
+            return { ...student.toObject(), studentId: _student.studentId, name: _student.name };
         }));
         
         res.status(200).json({
             studentListInClass: studentListInClass,
-            gradedStudentIds: gradedStudentIds,
+            gradedStudentIds: gradedStudents,
             studentsWithoutGrade: studentsWithStudentId
         });
     } catch (error) {
