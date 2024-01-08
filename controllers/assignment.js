@@ -209,40 +209,30 @@ export const markFinalDecision = async (req, res, next) => {
 }
 
 export const assignmentReviews = async (req, res, next) => {
-  const classId = req.params.classId;
+  const assignmentId = req.params.assignmentId;
 
-  if (classId) {
+  if (assignmentId) {
 
     // find assignment
-    GradeStructureModel.find({ classId }, '_id')
-      .then((gradeStructureIds) => {
-        const ids = gradeStructureIds.map((gradeStructure) => gradeStructure._id);
+    await StudentGradeModel.find({ assignmentId }, '_id')
+    .then((studentGradeIds) => {
+      const ids = studentGradeIds.map((sg) => sg._id);
 
-        return AssignmentModel.find({ gradeStructureId: { $in: ids } }, '_id');
-      }).then((assignmentIds) => {
-        const ids = assignmentIds.map((assignment) => assignment._id);
-
-        return StudentGradeModel.find({ assignmentId: { $in: ids } }, '_id');
-      })
-      .then((studentGradeIds) => {
-        const ids = studentGradeIds.map((sg) => sg._id);
-
-        return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
-          .populate({
-            path: 'studentGradeId',
-            select: 'id grade userId assignmentId',
-            populate: [
-              { path: 'userId', select: 'id name studentId' },
-              { path: 'assignmentId', select: 'id name scale' }
-            ]
-          });
-      })
-      .then((assignmentReviews) => {
-        return res.status(200).json(assignmentReviews);
-      })
-      .catch((err) => {
-        return res.status(400).json({ message: 'Fail' });
-      });
+      return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
+        .populate({
+          path: 'studentGradeId',
+          select: 'id grade userId assignmentId',
+          populate: [
+            { path: 'userId', select: 'id name studentId' }
+          ]
+        }); 
+    })
+    .then((assignmentReviews) => {
+      return res.status(200).json(assignmentReviews);
+    })
+    .catch((err) => {
+      return res.status(400).json({ message: 'Fail' });
+    });
 
   } else {
     return res.status(400).json({ message: 'Invalid fields' });
