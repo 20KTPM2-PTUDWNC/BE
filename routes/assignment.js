@@ -29,4 +29,6 @@ assignmentRoute.put('/markFinalDecision/:assignmentReviewId', passport.authentic
 
 assignmentRoute.get('/assignmentReviews/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.assignmentReviews));
 
+assignmentRoute.get('/assignmentDetail/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(assignmentController.assignmentDetail));
+
 export default assignmentRoute;

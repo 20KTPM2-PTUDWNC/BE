@@ -136,13 +136,23 @@ export const mappingStudentId = async (req, res, next) => {
 
 export const getAllUser = async (req, res, next) => {
     const users = await usersService.findAllUsers();
-    const filteredUsers = users.filter(user => user.userFlag !== 0);
-    return res.status(200).json(filteredUsers);
+    const filteredUser = users.filter(user => user.userFlag !== 0);
+    return res.status(200).json(filteredUser);
 }
 
 export const lockAccount = async (req, res, next) => {
     const userId = req.params.userId;
     await User.findByIdAndUpdate({ _id: userId }, { deleteAt: new Date() },
+        {
+            new: true,
+            runValidators: true
+        });
+    return res.status(200).json({ message: 'Successfully' });
+}
+
+export const unLockAccount = async (req, res, next) => {
+    const userId = req.params.userId;
+    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: null },
         {
             new: true,
             runValidators: true
