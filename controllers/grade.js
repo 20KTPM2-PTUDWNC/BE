@@ -7,7 +7,7 @@ import AssignmentModel from "../models/assignment.js";
 import StudentGradeModel from "../models/studentGrade.js";
 import NotificationModel, { Description, Title } from "../models/notification.js";
 import UsersModel from "../models/users.js";
-import UserClassModel from "../models/userClass.js";
+import UserClassModel, {UserRole} from "../models/userClass.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -48,7 +48,39 @@ export const addGradeComposition = async (req, res, next) => {
         // Save the updated class in the database
         await gradeService.save(newGradeComposition);
 
-        return res.status(200).json({ message: "Grade structure added successfully" });
+        // Notification
+        let notification = {
+            title: Title.NewGradeStructure,
+            description: Description.NewGradeStructure(name)
+        };
+
+        // Find students and teachers in the class
+        let classMembers = await UserClassModel.find({ classId: classId });
+
+        // Exclude the user who created the GradeStructure (assuming it's a teacher)
+        const creatorId = req.user._id; // Adjust this based on your authentication setup
+        classMembers = classMembers.filter(member => member.userId.toString() !== creatorId);
+
+        // Separate notifications for students and teachers
+        const studentNotifications = classMembers
+            .filter(member => member.userRole === UserRole.Student)
+            .map(student => ({
+                ...notification,
+                receiverId: student._doc.userId,
+                url: `class/${classId}`
+            }));
+
+        const teacherNotifications = classMembers
+            .filter(member => member.userRole === UserRole.Teacher)
+            .map(teacher => ({
+                ...notification,
+                receiverId: teacher._doc.userId,
+                url: `class/${classId}`
+            }));
+
+        await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
+
+        return res.status(200).json(studentNotifications);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
