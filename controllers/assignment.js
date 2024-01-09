@@ -240,3 +240,22 @@ export const assignmentReviews = async (req, res, next) => {
   }
 
 }
+
+export const assignmentDetail = async (req, res, next) => {
+  const assignmentId = req.params.assignmentId;
+
+  if (assignmentId) {
+
+    const assignment = await AssignmentModel.findById(assignmentId);
+
+    if(!assignment) {
+      return res.status(404).json({ message: `Not found assignmentid = ${assignmentId}` });
+    }
+
+    return res.status(400).json(assignment);
+
+  } else {
+    return res.status(400).json({ message: 'Invalid fields' });
+  }
+
+}
