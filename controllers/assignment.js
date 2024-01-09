@@ -85,8 +85,7 @@ export const reviewAssignment = async (req, res, next) => {
     // notification
     let notification = {
       title: Title.Review,
-      description: Description.Review(assignment._doc.assignmentId._doc.name),
-      url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`
+      description: Description.Review(assignment._doc.assignmentId._doc.name)
     }
 
     // student => teacher
@@ -96,14 +95,16 @@ export const reviewAssignment = async (req, res, next) => {
 
       teachers = teachers.map((d) => ({
         ...notification,
-        receiverId: d._doc._id
+        receiverId: d._doc.userId,
+        url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}/${assignment._doc.userId._doc._id}`
       }));
 
       await NotificationModel.insertMany(teachers);
     } else {
       notification = {
         ...notification,
-        receiverId: assignment._doc.userId._doc._id
+        receiverId: assignment._doc.userId._doc._id,
+        url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`
       }
 
       await NotificationModel.create(notification);
@@ -215,24 +216,24 @@ export const assignmentReviews = async (req, res, next) => {
 
     // find assignment
     await StudentGradeModel.find({ assignmentId }, '_id')
-    .then((studentGradeIds) => {
-      const ids = studentGradeIds.map((sg) => sg._id);
+      .then((studentGradeIds) => {
+        const ids = studentGradeIds.map((sg) => sg._id);
 
-      return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
-        .populate({
-          path: 'studentGradeId',
-          select: 'id grade userId assignmentId',
-          populate: [
-            { path: 'userId', select: 'id name studentId' }
-          ]
-        }); 
-    })
-    .then((assignmentReviews) => {
-      return res.status(200).json(assignmentReviews);
-    })
-    .catch((err) => {
-      return res.status(400).json({ message: 'Fail' });
-    });
+        return AssignmentReviewModel.find({ studentGradeId: { $in: ids } }, { _id: 1, expectedGrade: 1, finalDecision: 1 })
+          .populate({
+            path: 'studentGradeId',
+            select: 'id grade userId assignmentId',
+            populate: [
+              { path: 'userId', select: 'id name studentId' }
+            ]
+          });
+      })
+      .then((assignmentReviews) => {
+        return res.status(200).json(assignmentReviews);
+      })
+      .catch((err) => {
+        return res.status(400).json({ message: 'Fail' });
+      });
 
   } else {
     return res.status(400).json({ message: 'Invalid fields' });
