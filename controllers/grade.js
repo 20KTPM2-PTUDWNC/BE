@@ -80,7 +80,7 @@ export const addGradeComposition = async (req, res, next) => {
 
         await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
 
-        return res.status(200).json(studentNotifications);
+        return res.status(200).json({ message: "Grade composition added successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
