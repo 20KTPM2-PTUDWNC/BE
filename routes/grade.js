@@ -29,4 +29,6 @@ gradeRoute.get('/showGradeById/:userId', passport.authenticate('jwt', {session: 
 
 gradeRoute.get('/showStudentGradeByTeacher/:classId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.showStudentGradeByTeacher));
 
+gradeRoute.put('/markAllGrade/:assignmentId', passport.authenticate('jwt', {session: false}), nextWrapper(gradeController.markAllGrade));
+
 export default gradeRoute;

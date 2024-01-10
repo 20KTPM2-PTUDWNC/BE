@@ -20,7 +20,7 @@ export default {
     return grades;
   },
   updateStudentGrade: async (data) => {
-    return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, studentId: data.studentId }, data, { upsert: true, new: true });
+    return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, userId: data.userId }, data, { upsert: true, new: true });
   },
   findStudentGrade: async (assignmentId, userId) => {
     const studentGrade = await StudentGradeModel.findOne({ assignmentId, userId });

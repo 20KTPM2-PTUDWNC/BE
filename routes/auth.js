@@ -33,7 +33,7 @@ authRoute.get('/auth/facebook/callback',
     });
 
 authRoute.get('/auth/facebook',
-    passport.authenticate('facebook',  { scope: ['email'], session: false }));
+    passport.authenticate('facebook', { scope: ['email'], session: false }));
 
 authRoute.get('/signInSuccess', nextWrapper(authController.signInSuccess));
 

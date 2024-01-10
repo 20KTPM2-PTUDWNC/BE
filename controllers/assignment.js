@@ -252,7 +252,7 @@ export const assignmentDetail = async (req, res, next) => {
       return res.status(404).json({ message: `Not found assignmentid = ${assignmentId}` });
     }
 
-    return res.status(400).json(assignment);
+    return res.status(200).json(assignment);
 
   } else {
     return res.status(400).json({ message: 'Invalid fields' });
