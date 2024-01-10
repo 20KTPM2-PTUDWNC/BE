@@ -15,11 +15,11 @@ export default {
   },
   findGradeAnAssignment: async (assignmentId) => {
     const projection = { _id: 0, studentId: 1, grade: 1, mark: 1 };
-    const grades = await StudentGradeModel.find({ assignmentId }, projection);
+    const grades = await StudentGradeModel.find({ assignmentId }, projection).populate('userId', '_id name');
     return grades;
   },
   updateStudentGrade: async (data) => {
-    return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, studentId: data.studentId }, data, { upsert: true, new: true });
+    return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, userId: data.userId }, data, { upsert: true, new: true });
   },
   findStudentGrade: async (assignmentId, userId) => {
     const studentGrade = await StudentGradeModel.findOne({ assignmentId, userId });
