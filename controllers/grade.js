@@ -7,7 +7,7 @@ import AssignmentModel from "../models/assignment.js";
 import StudentGradeModel from "../models/studentGrade.js";
 import NotificationModel, { Description, Title } from "../models/notification.js";
 import UsersModel from "../models/users.js";
-import UserClassModel, {UserRole} from "../models/userClass.js";
+import UserClassModel, { UserRole } from "../models/userClass.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -338,9 +338,6 @@ export const showGradeById = async (req, res, next) => {
     }
 };
 
-
-
-
 export const showStudentGradeByTeacher = async (req, res, next) => {
     try {
         const classId = req.params.classId;
@@ -376,7 +373,7 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
             for (const studentGrade of studentGrades) {
                 if (studentGrade.userId._id.toString() === student.userId._id.toString()) {
                     const assignmentScale = studentGrade.assignmentId.scale || 1; // Lấy scale của assignment (nếu có, mặc định là 1)
-                    const weightedGrade = studentGrade.grade * ( assignmentScale / 100 ); // Tính điểm nhân với scale
+                    const weightedGrade = studentGrade.grade * (assignmentScale / 100); // Tính điểm nhân với scale
                     studentInfo.assignments.push({
                         name: studentGrade.assignmentId.name,
                         grade: parseFloat(weightedGrade.toFixed(2)),
@@ -399,7 +396,18 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
     }
 };
 
+export const markAllGrade = async (req, res, next) => {
+    const assignmentId = req.params.assignmentId;
 
+    if (!assignmentId) {
+        res.status(400).json({ message: 'Invalid fields' });
+    }
 
+    const assignment = await AssignmentModel.findById(assignmentId);
 
-
+    if (assignment) {
+        await StudentGradeModel.updateMany({ assignmentId }, { mark: 1 })
+        return res.status(200).json({ message: 'Successfully' });
+    }
+    res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
+}
