@@ -40,7 +40,7 @@ const usersSchema = new mongoose.Schema({
         default: Date.now,
         required: true
     },
-    deleteAt: {
+    deletedAt: {
         type: Date,
         default: null
     },

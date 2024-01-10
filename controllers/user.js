@@ -142,7 +142,7 @@ export const getAllUser = async (req, res, next) => {
 
 export const lockAccount = async (req, res, next) => {
     const userId = req.params.userId;
-    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: new Date() },
+    await User.findByIdAndUpdate({ _id: userId }, { deletedAt: new Date() },
         {
             new: true,
             runValidators: true
@@ -152,7 +152,7 @@ export const lockAccount = async (req, res, next) => {
 
 export const unLockAccount = async (req, res, next) => {
     const userId = req.params.userId;
-    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: null },
+    await User.findByIdAndUpdate({ _id: userId }, { deletedAt: null },
         {
             new: true,
             runValidators: true
