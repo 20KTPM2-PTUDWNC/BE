@@ -299,8 +299,10 @@ export const showGradeById = async (req, res, next) => {
         const studentGrades = await StudentGradeModel.find({ userId: userId });
 
         if (!studentGrades || studentGrades.length === 0) {
-            return res.status(400).json({ message: `No student with id: ${userId}` });
+            return res.status(400).json({ message: `No student found with id: ${userId}` });
         }
+
+        let totalGrade = 0; // Variable to calculate total grade
 
         const assignmentsInfo = await Promise.all(
             studentGrades.map(async (grade) => {
@@ -308,10 +310,15 @@ export const showGradeById = async (req, res, next) => {
                 if (assignment && grade.mark === 1) {
                     const gradeComposition = await GradeModel.findById({ _id: assignment.gradeStructureId });
                     if (gradeComposition) {
+                        const assignmentScale = assignment.scale || 1; // Get assignment scale (if available, default is 1)
+                        const gradeAssignment = grade.grade;
+                        const weightedGrade = gradeAssignment * (assignmentScale / 100); // Calculate grade multiplied by scale
+                        totalGrade += weightedGrade; // Add each assignment grade to the total grade
+
                         return {
                             gradeCompositionName: gradeComposition.name,
                             assignmentName: assignment.name,
-                            grade: grade.grade
+                            grade: parseFloat(gradeAssignment.toFixed(2)) // Round assignment grade to 2 decimal places
                         };
                     }
                 }
@@ -319,12 +326,20 @@ export const showGradeById = async (req, res, next) => {
             })
         );
 
-        return res.status(200).json(assignmentsInfo.filter(assignment => assignment !== null));
+        totalGrade = parseFloat(totalGrade.toFixed(2)); // Round total grade to 2 decimal places
+
+        return res.status(200).json({
+            assignmentsInfo: assignmentsInfo.filter(assignment => assignment !== null),
+            totalGrade: totalGrade // Return total grade
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+
+
 
 export const showStudentGradeByTeacher = async (req, res, next) => {
     try {
@@ -364,12 +379,14 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
                     const weightedGrade = studentGrade.grade * ( assignmentScale / 100 ); // Tính điểm nhân với scale
                     studentInfo.assignments.push({
                         name: studentGrade.assignmentId.name,
-                        grade: weightedGrade,
+                        grade: parseFloat(weightedGrade.toFixed(2)),
                         scale: assignmentScale,
                     });
                     studentInfo.total += weightedGrade; // Cộng điểm vào tổng
                 }
             }
+
+            studentInfo.total = parseFloat(studentInfo.total.toFixed(2))
 
             studentInfoList.push(studentInfo);
         }
