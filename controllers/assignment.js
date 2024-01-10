@@ -33,7 +33,7 @@ export const addAssignment = async (req, res, next) => {
     }
 
     // Create the new assignment object
-    const newAssignment = {
+    const _newAssignment = {
       name: name,
       scale: scale,
       content: content,
@@ -41,7 +41,39 @@ export const addAssignment = async (req, res, next) => {
     };
 
     // Save the updated class in the database
-    await AssignmentModel.create(newAssignment);
+    await AssignmentModel.create(_newAssignment);
+
+    // Notification
+    let notification = {
+      title: Title.NewAssignment,
+      description: Description.NewAssignment(name)
+  };
+
+  // Find students and teachers in the class
+  let classMembers = await UserClassModel.find({ classId: gradeStructure.classId });
+
+  // Exclude the user who created the GradeStructure (assuming it's a teacher)
+  const creatorId = req.user._id; // Adjust this based on your authentication setup
+  classMembers = classMembers.filter(member => member.userId.toString() !== creatorId);
+
+  // Separate notifications for students and teachers
+  const studentNotifications = classMembers
+      .filter(member => member.userRole === UserRole.Student)
+      .map(student => ({
+          ...notification,
+          receiverId: student._doc.userId,
+          url: `class/${gradeStructure.classId}`
+      }));
+
+  const teacherNotifications = classMembers
+      .filter(member => member.userRole === UserRole.Teacher)
+      .map(teacher => ({
+          ...notification,
+          receiverId: teacher._doc.userId,
+          url: `class/${gradeStructure.classId}`
+      }));
+
+  await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
 
     return res.status(200).json({ message: "Assignment added successfully" });
   } else {
@@ -132,6 +164,7 @@ export const uploadGradeList = async (req, res) => {
     });
 
     let parsedData = [];
+    let sentResponse = false; 
 
     Papa.parse(readStream, {
       header: true,
@@ -145,7 +178,10 @@ export const uploadGradeList = async (req, res) => {
         const checkUser = await userService.findUserByEmail(email);
 
         if (!checkUser) {
-          res.status(400).json({ message: `No student with email: ${email} ` });
+          if (!sentResponse) {
+            res.status(400).json({ message: `No student with email: ${email} ` });
+            sentResponse = true;
+          }
         }
 
         const gradeData = {
@@ -159,10 +195,18 @@ export const uploadGradeList = async (req, res) => {
 
       },
       complete: function () {
-        return res.status(200).json({ message: 'Uploading grade list successfully' });
+        if (!sentResponse) {
+          // Chỉ gửi dữ liệu đã phân tích một lần sau khi xử lý hoàn tất
+          return res.status(200).json({ message: 'Uploading grade list successfully' });
+          sentResponse = true;
+        }
+
       },
       error: function (error) {
-        return res.status(400).json({ error: "CSV parsing error has occurred" });
+        if (!sentResponse) {
+          res.status(400).json({ error: "CSV parsing error has occurred" });
+          sentResponse = true;
+        }
       }
     });
   } else {

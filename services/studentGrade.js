@@ -15,9 +15,17 @@ export default {
   },
   findGradeAnAssignment: async (assignmentId) => {
     const projection = { _id: 0, studentId: 1, grade: 1, mark: 1 };
-    const grades = await StudentGradeModel.find({ assignmentId }, projection)
-    .populate('userId', '_id name')
-    return grades;
+    const grades = await StudentGradeModel.find({ assignmentId }, projection).populate('userId', '_id name');
+    
+    const formattedGrades = grades.map((grade) => ({
+      studentId: grade.studentId,
+      grade: grade.grade,
+      mark: grade.mark,
+      userId: grade.userId._id, // Accessing the _id directly from the userId field
+      name: grade.userId.name
+  }));
+
+  return formattedGrades;
   },
   updateStudentGrade: async (data) => {
     return await StudentGradeModel.findOneAndUpdate({ assignmentId: data.assignmentId, userId: data.userId }, data, { upsert: true, new: true });
