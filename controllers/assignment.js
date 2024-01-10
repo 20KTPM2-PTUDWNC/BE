@@ -33,7 +33,7 @@ export const addAssignment = async (req, res, next) => {
     }
 
     // Create the new assignment object
-    const newAssignment = {
+    const _newAssignment = {
       name: name,
       scale: scale,
       content: content,
@@ -41,7 +41,7 @@ export const addAssignment = async (req, res, next) => {
     };
 
     // Save the updated class in the database
-    await AssignmentModel.create(newAssignment);
+    await AssignmentModel.create(_newAssignment);
 
     // Notification
     let notification = {
@@ -164,7 +164,7 @@ export const uploadGradeList = async (req, res) => {
     });
 
     let parsedData = [];
-    let sentResponse = false;
+    let sentResponse = false; 
 
     Papa.parse(readStream, {
       header: true,
@@ -191,28 +191,22 @@ export const uploadGradeList = async (req, res) => {
           userId: checkUser._id
         };
 
-        const existingStudent = await StudentGradeModel.findOne({studentId: studentId, userId: checkUser._id, assignmentId: assignmentId});
+        await studentGradeService.save(gradeData);
 
-        if (existingStudent){
-          await StudentGradeModel.findOneAndUpdate({ studentId: studentId, userId: checkUser._id },
-                gradeData,
-                { upsert: true, 
-                  new: true 
-                });
-        }
-        else {
-          await studentGradeService.save(gradeData);
-      }
-        
       },
       complete: function () {
         if (!sentResponse) {
-          res.status(200).json({ message: 'Uploading grade list successfully' });
+          // Chỉ gửi dữ liệu đã phân tích một lần sau khi xử lý hoàn tất
+          return res.status(200).json({ message: 'Uploading grade list successfully' });
           sentResponse = true;
         }
+
       },
       error: function (error) {
-        return res.status(400).json({ error: "CSV parsing error has occurred" });
+        if (!sentResponse) {
+          res.status(400).json({ error: "CSV parsing error has occurred" });
+          sentResponse = true;
+        }
       }
     });
   } else {
