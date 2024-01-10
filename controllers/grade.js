@@ -50,8 +50,8 @@ export const addGradeComposition = async (req, res, next) => {
 
         // Notification
         let notification = {
-            title: Title.NewGradeStructure,
-            description: Description.NewGradeStructure(name)
+            title: Title.NewGradeComposition,
+            description: Description.NewGradeComposition(name)
         };
 
         // Find students and teachers in the class
