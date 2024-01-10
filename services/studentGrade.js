@@ -15,7 +15,8 @@ export default {
   },
   findGradeAnAssignment: async (assignmentId) => {
     const projection = { _id: 0, studentId: 1, grade: 1, mark: 1 };
-    const grades = await StudentGradeModel.find({ assignmentId }, projection);
+    const grades = await StudentGradeModel.find({ assignmentId }, projection)
+    .populate('userId', '_id name')
     return grades;
   },
   updateStudentGrade: async (data) => {
@@ -35,7 +36,7 @@ export default {
         userReview: []
       }
 
-      if(assignmentReview) {
+      if (assignmentReview) {
         const userReview = await UserReviewModel.find({ assignmentReviewId: assignmentReview.id }).populate('userId', projection).sort({ "sort": 1 });
         result = {
           ...result,
@@ -51,6 +52,6 @@ export default {
   },
   findAllStudentInClass: async (classId) => {
     const projection = { _id: 0, studentId: 1, name: 1 };
-      return await UserClassModel.find({ classId, userRole: 0 }, {_id: 1}).populate('userId', projection);
-    }
+    return await UserClassModel.find({ classId, userRole: 0 }, { _id: 1 }).populate('userId', projection);
+  }
 }
