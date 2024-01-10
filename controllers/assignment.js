@@ -21,7 +21,6 @@ export const addAssignment = async (req, res, next) => {
   }
 
   const gradeStructure = await gradeService.findGradeById(gradeStructureId);
-  console.log(gradeStructure);
 
   if (gradeStructure) {
     // Calculate the total scale of existing assignments
@@ -63,7 +62,7 @@ export const addAssignment = async (req, res, next) => {
       .map(student => ({
           ...notification,
           receiverId: student._doc.userId,
-          url: `class/${classId}`
+          url: `class/${gradeStructure.classId}`
       }));
 
   const teacherNotifications = classMembers
@@ -71,7 +70,7 @@ export const addAssignment = async (req, res, next) => {
       .map(teacher => ({
           ...notification,
           receiverId: teacher._doc.userId,
-          url: `class/${classId}`
+          url: `class/${gradeStructure.classId}`
       }));
 
   await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
