@@ -33,7 +33,7 @@ export const addAssignment = async (req, res, next) => {
     }
 
     // Create the new assignment object
-    const newAssignment = {
+    const _newAssignment = {
       name: name,
       scale: scale,
       content: content,
@@ -41,7 +41,39 @@ export const addAssignment = async (req, res, next) => {
     };
 
     // Save the updated class in the database
-    await AssignmentModel.create(newAssignment);
+    await AssignmentModel.create(_newAssignment);
+
+    // Notification
+    let notification = {
+      title: Title.NewAssignment,
+      description: Description.NewAssignment(name)
+  };
+
+  // Find students and teachers in the class
+  let classMembers = await UserClassModel.find({ classId: gradeStructure.classId });
+
+  // Exclude the user who created the GradeStructure (assuming it's a teacher)
+  const creatorId = req.user._id; // Adjust this based on your authentication setup
+  classMembers = classMembers.filter(member => member.userId.toString() !== creatorId);
+
+  // Separate notifications for students and teachers
+  const studentNotifications = classMembers
+      .filter(member => member.userRole === UserRole.Student)
+      .map(student => ({
+          ...notification,
+          receiverId: student._doc.userId,
+          url: `class/${gradeStructure.classId}`
+      }));
+
+  const teacherNotifications = classMembers
+      .filter(member => member.userRole === UserRole.Teacher)
+      .map(teacher => ({
+          ...notification,
+          receiverId: teacher._doc.userId,
+          url: `class/${gradeStructure.classId}`
+      }));
+
+  await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
 
     return res.status(200).json({ message: "Assignment added successfully" });
   } else {
@@ -85,8 +117,7 @@ export const reviewAssignment = async (req, res, next) => {
     // notification
     let notification = {
       title: Title.Review,
-      description: Description.Review(assignment._doc.assignmentId._doc.name),
-      url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`
+      description: Description.Review(assignment._doc.assignmentId._doc.name)
     }
 
     // student => teacher
@@ -96,14 +127,16 @@ export const reviewAssignment = async (req, res, next) => {
 
       teachers = teachers.map((d) => ({
         ...notification,
-        receiverId: d._doc._id
+        receiverId: d._doc.userId,
+        url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}/${assignment._doc.userId._doc._id}`
       }));
 
       await NotificationModel.insertMany(teachers);
     } else {
       notification = {
         ...notification,
-        receiverId: assignment._doc.userId._doc._id
+        receiverId: assignment._doc.userId._doc._id,
+        url: `class/${assignment._doc.assignmentId._doc.gradeStructureId._doc.classId}/${assignment._doc.assignmentId._doc._id}`
       }
 
       await NotificationModel.create(notification);
@@ -131,6 +164,7 @@ export const uploadGradeList = async (req, res) => {
     });
 
     let parsedData = [];
+    let sentResponse = false; 
 
     Papa.parse(readStream, {
       header: true,
@@ -144,7 +178,10 @@ export const uploadGradeList = async (req, res) => {
         const checkUser = await userService.findUserByEmail(email);
 
         if (!checkUser) {
-          res.status(400).json({ message: `No student with email: ${email} ` });
+          if (!sentResponse) {
+            res.status(400).json({ message: `No student with email: ${email} ` });
+            sentResponse = true;
+          }
         }
 
         const gradeData = {
@@ -158,10 +195,18 @@ export const uploadGradeList = async (req, res) => {
 
       },
       complete: function () {
-        return res.status(200).json({ message: 'Uploading grade list successfully' });
+        if (!sentResponse) {
+          // Chỉ gửi dữ liệu đã phân tích một lần sau khi xử lý hoàn tất
+          return res.status(200).json({ message: 'Uploading grade list successfully' });
+          sentResponse = true;
+        }
+
       },
       error: function (error) {
-        return res.status(400).json({ error: "CSV parsing error has occurred" });
+        if (!sentResponse) {
+          res.status(400).json({ error: "CSV parsing error has occurred" });
+          sentResponse = true;
+        }
       }
     });
   } else {
@@ -209,21 +254,12 @@ export const markFinalDecision = async (req, res, next) => {
 }
 
 export const assignmentReviews = async (req, res, next) => {
-  const classId = req.params.classId;
+  const assignmentId = req.params.assignmentId;
 
-  if (classId) {
+  if (assignmentId) {
 
     // find assignment
-    GradeStructureModel.find({ classId }, '_id')
-      .then((gradeStructureIds) => {
-        const ids = gradeStructureIds.map((gradeStructure) => gradeStructure._id);
-
-        return AssignmentModel.find({ gradeStructureId: { $in: ids } }, '_id');
-      }).then((assignmentIds) => {
-        const ids = assignmentIds.map((assignment) => assignment._id);
-
-        return StudentGradeModel.find({ assignmentId: { $in: ids } }, '_id');
-      })
+    await StudentGradeModel.find({ assignmentId }, '_id')
       .then((studentGradeIds) => {
         const ids = studentGradeIds.map((sg) => sg._id);
 
@@ -232,8 +268,7 @@ export const assignmentReviews = async (req, res, next) => {
             path: 'studentGradeId',
             select: 'id grade userId assignmentId',
             populate: [
-              { path: 'userId', select: 'id name studentId' },
-              { path: 'assignmentId', select: 'id name scale' }
+              { path: 'userId', select: 'id name studentId' }
             ]
           });
       })
@@ -243,6 +278,25 @@ export const assignmentReviews = async (req, res, next) => {
       .catch((err) => {
         return res.status(400).json({ message: 'Fail' });
       });
+
+  } else {
+    return res.status(400).json({ message: 'Invalid fields' });
+  }
+
+}
+
+export const assignmentDetail = async (req, res, next) => {
+  const assignmentId = req.params.assignmentId;
+
+  if (assignmentId) {
+
+    const assignment = await AssignmentModel.findById(assignmentId);
+
+    if(!assignment) {
+      return res.status(404).json({ message: `Not found assignmentid = ${assignmentId}` });
+    }
+
+    return res.status(200).json(assignment);
 
   } else {
     return res.status(400).json({ message: 'Invalid fields' });

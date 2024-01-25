@@ -14,14 +14,14 @@ export default {
     return user;
   },
   findAllUsers: async () => {
-    return await UsersModel.find();
+    return await UsersModel.find({userFlag: 1});
   },
   findOrCreate: async (data) => {
     const email = data.emails[0].value;
     let user = await UsersModel.findOne({ email: email });
     if (!user) {
       user = await UsersModel.create({
-        name: displayName,
+        name: data.displayName,
         email: email,
         avatar: data.picture,
         typeLogin: data.provider,

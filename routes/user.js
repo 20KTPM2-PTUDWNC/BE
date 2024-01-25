@@ -29,6 +29,8 @@ userRoute.get('/', passport.authenticate('jwt', {session: false}), nextWrapper(u
 
 userRoute.patch('/lockAccount/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.lockAccount));
 
+userRoute.patch('/unLockAccount/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.unLockAccount));
+
 userRoute.patch('/unmappingStudentId/:userId', passport.authenticate('jwt', {session: false}), nextWrapper(userController.unmappingStudentId));
 
 userRoute.post('/mappingStudentIdByCsv', upload.single("file"), passport.authenticate('jwt', {session: false}), nextWrapper(userController.mappingStudentIdByCsv));

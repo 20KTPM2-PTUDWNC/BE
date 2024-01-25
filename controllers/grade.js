@@ -7,7 +7,7 @@ import AssignmentModel from "../models/assignment.js";
 import StudentGradeModel from "../models/studentGrade.js";
 import NotificationModel, { Description, Title } from "../models/notification.js";
 import UsersModel from "../models/users.js";
-import UserClassModel from "../models/userClass.js";
+import UserClassModel, { UserRole } from "../models/userClass.js";
 
 export const addGradeComposition = async (req, res, next) => {
     const classId = req.params.classId;
@@ -48,7 +48,39 @@ export const addGradeComposition = async (req, res, next) => {
         // Save the updated class in the database
         await gradeService.save(newGradeComposition);
 
-        return res.status(200).json({ message: "Grade structure added successfully" });
+        // Notification
+        let notification = {
+            title: Title.NewGradeComposition,
+            description: Description.NewGradeComposition(name)
+        };
+
+        // Find students and teachers in the class
+        let classMembers = await UserClassModel.find({ classId: classId });
+
+        // Exclude the user who created the GradeStructure (assuming it's a teacher)
+        const creatorId = req.user._id; // Adjust this based on your authentication setup
+        classMembers = classMembers.filter(member => member.userId.toString() !== creatorId);
+
+        // Separate notifications for students and teachers
+        const studentNotifications = classMembers
+            .filter(member => member.userRole === UserRole.Student)
+            .map(student => ({
+                ...notification,
+                receiverId: student._doc.userId,
+                url: `class/${classId}`
+            }));
+
+        const teacherNotifications = classMembers
+            .filter(member => member.userRole === UserRole.Teacher)
+            .map(teacher => ({
+                ...notification,
+                receiverId: teacher._doc.userId,
+                url: `class/${classId}`
+            }));
+
+        await NotificationModel.insertMany([...studentNotifications, ...teacherNotifications]);
+
+        return res.status(200).json({ message: "Grade composition added successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -267,8 +299,10 @@ export const showGradeById = async (req, res, next) => {
         const studentGrades = await StudentGradeModel.find({ userId: userId });
 
         if (!studentGrades || studentGrades.length === 0) {
-            return res.status(400).json({ message: `No student with id: ${userId}` });
+            return res.status(400).json({ message: `No student found with id: ${userId}` });
         }
+
+        let totalGrade = 0; // Variable to calculate total grade
 
         const assignmentsInfo = await Promise.all(
             studentGrades.map(async (grade) => {
@@ -276,10 +310,15 @@ export const showGradeById = async (req, res, next) => {
                 if (assignment && grade.mark === 1) {
                     const gradeComposition = await GradeModel.findById({ _id: assignment.gradeStructureId });
                     if (gradeComposition) {
+                        const assignmentScale = assignment.scale || 1; // Get assignment scale (if available, default is 1)
+                        const gradeAssignment = grade.grade;
+                        const weightedGrade = gradeAssignment * (assignmentScale / 100); // Calculate grade multiplied by scale
+                        totalGrade += weightedGrade; // Add each assignment grade to the total grade
+
                         return {
                             gradeCompositionName: gradeComposition.name,
                             assignmentName: assignment.name,
-                            grade: grade.grade
+                            grade: parseFloat(gradeAssignment.toFixed(2)) // Round assignment grade to 2 decimal places
                         };
                     }
                 }
@@ -287,7 +326,12 @@ export const showGradeById = async (req, res, next) => {
             })
         );
 
-        return res.status(200).json(assignmentsInfo.filter(assignment => assignment !== null));
+        totalGrade = parseFloat(totalGrade.toFixed(2)); // Round total grade to 2 decimal places
+
+        return res.status(200).json({
+            assignmentsInfo: assignmentsInfo.filter(assignment => assignment !== null),
+            totalGrade: totalGrade // Return total grade
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal Server Error' });
@@ -329,15 +373,17 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
             for (const studentGrade of studentGrades) {
                 if (studentGrade.userId._id.toString() === student.userId._id.toString()) {
                     const assignmentScale = studentGrade.assignmentId.scale || 1; // Lấy scale của assignment (nếu có, mặc định là 1)
-                    const weightedGrade = studentGrade.grade * ( assignmentScale / 100 ); // Tính điểm nhân với scale
+                    const weightedGrade = studentGrade.grade * (assignmentScale / 100); // Tính điểm nhân với scale
                     studentInfo.assignments.push({
                         name: studentGrade.assignmentId.name,
-                        grade: weightedGrade,
+                        grade: parseFloat(weightedGrade.toFixed(2)),
                         scale: assignmentScale,
                     });
                     studentInfo.total += weightedGrade; // Cộng điểm vào tổng
                 }
             }
+
+            studentInfo.total = parseFloat(studentInfo.total.toFixed(2))
 
             studentInfoList.push(studentInfo);
         }
@@ -350,7 +396,18 @@ export const showStudentGradeByTeacher = async (req, res, next) => {
     }
 };
 
+export const markAllGrade = async (req, res, next) => {
+    const assignmentId = req.params.assignmentId;
 
+    if (!assignmentId) {
+        res.status(400).json({ message: 'Invalid fields' });
+    }
 
+    const assignment = await AssignmentModel.findById(assignmentId);
 
-
+    if (assignment) {
+        await StudentGradeModel.updateMany({ assignmentId }, { mark: 1 })
+        return res.status(200).json({ message: 'Successfully' });
+    }
+    res.status(400).json({ message: `No assignment with id: ${assignmentId}` });
+}

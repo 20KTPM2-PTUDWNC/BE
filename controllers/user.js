@@ -136,12 +136,23 @@ export const mappingStudentId = async (req, res, next) => {
 
 export const getAllUser = async (req, res, next) => {
     const users = await usersService.findAllUsers();
-    return res.status(200).json(users);
+    const filteredUser = users.filter(user => user.userFlag !== 0);
+    return res.status(200).json(filteredUser);
 }
 
 export const lockAccount = async (req, res, next) => {
     const userId = req.params.userId;
-    await User.findByIdAndUpdate({ _id: userId }, { deleteAt: new Date() },
+    await User.findByIdAndUpdate({ _id: userId }, { deletedAt: new Date() },
+        {
+            new: true,
+            runValidators: true
+        });
+    return res.status(200).json({ message: 'Successfully' });
+}
+
+export const unLockAccount = async (req, res, next) => {
+    const userId = req.params.userId;
+    await User.findByIdAndUpdate({ _id: userId }, { deletedAt: null },
         {
             new: true,
             runValidators: true
@@ -191,9 +202,10 @@ export const mappingStudentIdByCsv = async (req, res, next) => {
 
             if (!existingStudent) {
                 const checkStudent = await usersService.findUserByEmail(email);
-                const userId = checkStudent._id;
 
                 if (checkStudent) {
+                    const userId = checkStudent._id;
+
                     if (await usersService.isStudentIdMapped(studentId, userId)) {
                         const userUpdate = await User.findByIdAndUpdate({ _id: userId }, { studentId },
                             {
@@ -269,26 +281,26 @@ export const markNotification = async (req, res, next) => {
 }
 
 export const reviewStudentId = async (req, res, next) => {
-    const { text, sort, studentId } = req.body;
+    const { text, sort, studentId, userId } = req.body;
 
     if (studentId && text && sort) {
-        await usersService.updateStudentIdReview({ text, sort, userId: req.user._id, studentId });
+        await usersService.updateStudentIdReview({ text, sort, userId, studentId });
 
         // get receiver
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(userId);
         const student = await User.findById(studentId);
 
         // notification
         let notification = {
-            title: Title.StudentId,
-            url: `/user/${req.user._id}`
+            title: Title.StudentId
         }
 
         if (user.userFlag === UserFlag.Admin) {
             notification = {
                 ...notification,
                 description: Description.StudentId,
-                receiverId: studentId
+                receiverId: studentId,
+                url: `user/${userId}`
             }
 
             await NotificationModel.create(notification);
@@ -298,7 +310,8 @@ export const reviewStudentId = async (req, res, next) => {
             receiver = receiver.map((d) => ({
                 ...notification,
                 description: Description.Admin(student.name),
-                receiverId: d._doc._id
+                receiverId: d._doc._id,
+                url: `admin/CSKH/${studentId}`
             }));
 
             await NotificationModel.insertMany(receiver);
@@ -314,7 +327,7 @@ export const studentIdReviewDetail = async (req, res, next) => {
     const userId = req.params.userId;
 
     if (userId) {
-        const studentIdReviews = await StudentIdReviewModel.find({ userId }, { _id: 1, text: 1, sort: 1 }).populate('userId', { _id: 1, name: 1 }).sort({ "sort": 1 });
+        const studentIdReviews = await StudentIdReviewModel.find({ studentId: userId }, { _id: 1, text: 1, sort: 1 }).populate('userId', { _id: 1, name: 1 }).sort({ "sort": 1 });
 
         return res.status(200).json(studentIdReviews);
     }
